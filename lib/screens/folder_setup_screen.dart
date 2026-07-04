@@ -21,15 +21,20 @@ class FolderSetupScreen extends ConsumerStatefulWidget {
 
 class _FolderSetupScreenState extends ConsumerState<FolderSetupScreen>
     with WidgetsBindingObserver {
-  final _pathController = TextEditingController(
-    text: '/storage/emulated/0/Documents/the-system',
-  );
+  static const _defaultPath = '/storage/emulated/0/Documents/the-system';
+
+  late final TextEditingController _pathController;
   bool _saving = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Prefill with whatever folder is already set (e.g. when reopened via
+    // Home's "change folder" button) rather than always resetting to the
+    // placeholder default.
+    final currentFolder = ref.read(dataFolderProvider).value;
+    _pathController = TextEditingController(text: currentFolder ?? _defaultPath);
   }
 
   @override
