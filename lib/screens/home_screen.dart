@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'floating_notes_screen.dart';
 import 'folder_setup_screen.dart';
+import 'quick_add_screen.dart';
 import 'scratchpad_triage_screen.dart';
 
 class _NavLink {
@@ -53,6 +54,16 @@ class HomeScreen extends StatelessWidget {
       ),
       body: ListView(
         children: [
+          ListTile(
+            leading: const Icon(Icons.add),
+            title: const Text('Quick Add'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const QuickAddScreen()),
+            ),
+          ),
+          const Divider(height: 1),
           for (final link in _links)
             ListTile(
               title: Text(link.label),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:path/path.dart' as p;
 
@@ -122,5 +123,35 @@ class NotesService {
     if (await file.exists()) {
       await file.delete();
     }
+  }
+
+  /// Creates a new `primaryType: "unknown"` note from the Quick Add flow.
+  /// The filename is a slug of the title plus a random 6-hex-digit suffix,
+  /// so titles can repeat without colliding on disk.
+  Future<String> createQuickNote(
+    String folder, {
+    required String title,
+    String body = '',
+  }) async {
+    final filename = '${_slugify(title)}-${_randomHex6()}.json';
+    await writeJsonFile(folder, filename, {
+      'primaryType': 'unknown',
+      'title': title,
+      'body': body,
+    });
+    return filename;
+  }
+
+  String _slugify(String title) {
+    final slug = title
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'^-+|-+$'), '');
+    return slug.isEmpty ? 'note' : slug;
+  }
+
+  String _randomHex6() {
+    final value = Random().nextInt(0x1000000);
+    return value.toRadixString(16).padLeft(6, '0');
   }
 }

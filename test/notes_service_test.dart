@@ -134,6 +134,42 @@ void main() {
     });
   });
 
+  group('createQuickNote', () {
+    test('writes primaryType "unknown" with title and body', () async {
+      final filename = await service.createQuickNote(
+        tempDir.path,
+        title: 'My Title',
+        body: 'some body',
+      );
+      final note = await service.readJsonFile(tempDir.path, filename);
+      expect(note['primaryType'], 'unknown');
+      expect(note['title'], 'My Title');
+      expect(note['body'], 'some body');
+    });
+
+    test('slugifies the title and appends a 6-hex-digit suffix', () async {
+      final filename = await service.createQuickNote(tempDir.path, title: 'Buy Milk!! 2%');
+      expect(filename, matches(RegExp(r'^buy-milk-2-[0-9a-f]{6}\.json$')));
+    });
+
+    test('falls back to "note" when the title has no alphanumeric characters', () async {
+      final filename = await service.createQuickNote(tempDir.path, title: '!!!');
+      expect(filename, matches(RegExp(r'^note-[0-9a-f]{6}\.json$')));
+    });
+
+    test('defaults body to empty string when omitted', () async {
+      final filename = await service.createQuickNote(tempDir.path, title: 'No Body');
+      final note = await service.readJsonFile(tempDir.path, filename);
+      expect(note['body'], '');
+    });
+
+    test('two notes with the same title get different filenames', () async {
+      final a = await service.createQuickNote(tempDir.path, title: 'Same');
+      final b = await service.createQuickNote(tempDir.path, title: 'Same');
+      expect(a, isNot(b));
+    });
+  });
+
   group('deleteJsonFile', () {
     test('removes the file from disk', () async {
       await writeFixture('f.json', {'primaryType': 'scratchpad'});
