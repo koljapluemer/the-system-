@@ -1,41 +1,44 @@
 # the-system
 
-A Tauri + Vue desktop app for a growing suite of personal-notes flows, backed by a plain folder of JSON files on disk.
+A Flutter app for a growing suite of personal-notes flows, backed by a plain folder of JSON files on disk. Targets Linux desktop and Android (sideload) only.
 
 ## Prerequisites
 
-- Node.js and npm
-- Rust toolchain (`cargo`)
-- [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your OS (e.g. `webkit2gtk` on Linux)
+- [Flutter SDK](https://docs.flutter.dev/install) (stable channel)
+- Android SDK + NDK (via `flutter doctor` / Android Studio, or a standalone `cmdline-tools` setup) for the Android target
+- Linux desktop build tools: `sudo apt install cmake ninja-build clang libgtk-3-dev`
 
 ## Setup
 
 ```bash
-npm install
+flutter pub get
 ```
 
 ## Development
 
 ```bash
-npm run dev          # frontend only, in a browser (no filesystem access)
-npm run tauri dev    # full desktop app, with hot reload
+flutter run -d linux    # desktop app, with hot reload
+flutter run -d <device> # Android device/emulator
 ```
 
-On first launch, the app asks you to pick a data folder — a directory of note JSON files it reads from and writes to.
+On first launch, the app asks for a data folder:
+- **Linux**: a native folder picker, backed by a real filesystem path.
+- **Android**: requests "All files access" (`MANAGE_EXTERNAL_STORAGE`) — a manual one-time toggle — then asks for a plain path (e.g. `/storage/emulated/0/Documents/the-system`). No Storage Access Framework/`content://` URIs are used, so a sync tool like Syncthing can point at the exact same folder on both platforms.
 
 ## Build
 
 ```bash
-npm run build              # type-check + build the frontend bundle
-npm run tauri:build        # build the desktop app for your platform
-npm run tauri:build:deb    # build a .deb package (Linux)
+flutter build linux         # Linux desktop bundle
+flutter build apk --debug   # debug APK, auto-signed, ready to sideload
 ```
 
-## Type-checking
+Install a built APK: `adb install -r build/app/outputs/flutter-apk/app-debug.apk`
+
+## Analysis & tests
 
 ```bash
-npx vue-tsc -b        # frontend
-cd src-tauri && cargo check   # backend
+flutter analyze
+flutter test
 ```
 
 ## Data format
@@ -44,4 +47,4 @@ Notes are flat `*.json` files directly inside the data folder. Each file has at 
 
 ## Flows
 
-- **Scratchpad Triage** — surfaces notes with `primaryType: "scratchpad"` and no `triaged: "true"` one at a time, in random order, with Keep / Delete / Defer actions. Delete offers an Undo toast.
+- **Scratchpad Triage** — surfaces notes with `primaryType: "scratchpad"` and no `triaged: "true"` one at a time, in random order, with Keep / Delete / Defer actions. Delete offers an Undo snackbar.
