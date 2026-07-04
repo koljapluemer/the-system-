@@ -47,17 +47,18 @@ mkdir -p ~/.local/bin
 ln -sf ~/.local/share/the_system/the_system ~/.local/bin/the_system
 ```
 
-Then add a desktop entry so it shows up in the app launcher:
+Then add a desktop entry so it shows up in the app launcher. The filename must match the app's `APPLICATION_ID` (see `linux/CMakeLists.txt`) so GNOME Shell can associate the running window with this launcher — otherwise the taskbar/dash shows a generic icon and won't offer "Add to Favorites", even though search still finds it by `Name=`:
 
 ```bash
 mkdir -p ~/.local/share/applications
-cat <<EOF > ~/.local/share/applications/the_system.desktop
+cat <<EOF > ~/.local/share/applications/com.koljasam.the_system.desktop
 [Desktop Entry]
 Type=Application
 Name=the-system
 Exec=$HOME/.local/share/the_system/the_system
 Icon=$HOME/.local/share/the_system/data/flutter_assets/assets/icon.png
 Categories=Utility;
+StartupWMClass=com.koljasam.the_system
 EOF
 ```
 
