@@ -1,0 +1,4 @@
+- repeated actions disappear when done?!
+- should repeated actions allow partly doing them
+- colors need more attention, just red all over makes shit frustrating
+- I'm completely losing overview who's who
