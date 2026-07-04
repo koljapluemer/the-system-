@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import '../models/floating_note_entry.dart';
 import '../models/note_file.dart';
 
 /// Reads/writes/lists/deletes note files that live as flat JSON files
@@ -48,6 +49,58 @@ class NotesService {
       }
     }
     return matches;
+  }
+
+  /// Scans the data folder for notes eligible to appear on the floating-notes
+  /// canvas: `primaryType == "unknown"`, or `primaryType == "scratchpad"` that
+  /// has already been triaged (`triaged == "true"`). Every matching note is
+  /// yielded eventually — nothing is dropped or capped, however large the
+  /// folder — but reads happen [concurrency]-wide instead of one file at a
+  /// time, so the wall-clock cost of scanning a folder with tens of thousands
+  /// of files is dominated by per-file I/O latency in parallel rather than in
+  /// series (this matters most on Android, where each file read on
+  /// MANAGE_EXTERNAL_STORAGE-backed paths carries real per-call overhead).
+  /// Results still stream out incrementally, so callers can render matches as
+  /// they arrive instead of waiting for the whole folder to finish.
+  Stream<FloatingNoteEntry> streamFloatingNotes(String folder, {int concurrency = 32}) async* {
+    final dir = Directory(folder);
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+      return;
+    }
+
+    final jsonFiles = <File>[];
+    await for (final entity in dir.list()) {
+      if (entity is File && entity.path.endsWith('.json')) {
+        jsonFiles.add(entity);
+      }
+    }
+
+    for (var i = 0; i < jsonFiles.length; i += concurrency) {
+      final batch = jsonFiles.skip(i).take(concurrency);
+      final results = await Future.wait(batch.map(_readFloatingEntry));
+      for (final entry in results) {
+        if (entry != null) yield entry;
+      }
+    }
+  }
+
+  Future<FloatingNoteEntry?> _readFloatingEntry(File file) async {
+    try {
+      final data = jsonDecode(await file.readAsString());
+      if (data is! Map<String, dynamic>) return null;
+      final primaryType = data['primaryType'];
+      final isUnknown = primaryType == 'unknown';
+      final isTriagedScratchpad = primaryType == 'scratchpad' && data['triaged'] == 'true';
+      if (!isUnknown && !isTriagedScratchpad) return null;
+      return FloatingNoteEntry(
+        filename: p.basename(file.path),
+        title: data['title'] as String? ?? '',
+        body: data['body'] as String? ?? '',
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<NoteFile> readJsonFile(String folder, String filename) async {

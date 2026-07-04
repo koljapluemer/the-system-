@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'floating_notes_screen.dart';
 import 'folder_setup_screen.dart';
 import 'scratchpad_triage_screen.dart';
 
@@ -11,7 +12,10 @@ class _NavLink {
 
 // Data-driven on purpose: this app is meant to grow into a suite of flows,
 // so new links just get added here.
-const _links = [_NavLink('scratchpad-triage', 'Scratchpad Triage')];
+const _links = [
+  _NavLink('scratchpad-triage', 'Scratchpad Triage'),
+  _NavLink('floating-notes', 'Floating Notes'),
+];
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -22,6 +26,11 @@ class HomeScreen extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const ScratchpadTriageScreen()),
+        );
+      case 'floating-notes':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const FloatingNotesScreen()),
         );
     }
   }

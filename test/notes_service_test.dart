@@ -55,6 +55,58 @@ void main() {
     });
   });
 
+  group('streamFloatingNotes', () {
+    test('includes notes with primaryType "unknown"', () async {
+      await writeFixture('u.json', {'primaryType': 'unknown', 'title': 'U', 'body': 'body'});
+      final result = await service.streamFloatingNotes(tempDir.path).toList();
+      expect(result.map((n) => n.filename), contains('u.json'));
+    });
+
+    test('includes scratchpad notes only once triaged "true"', () async {
+      await writeFixture('s1.json', {'primaryType': 'scratchpad', 'triaged': 'true', 'title': 'S1'});
+      await writeFixture('s2.json', {'primaryType': 'scratchpad', 'title': 'S2'});
+      final result = await service.streamFloatingNotes(tempDir.path).toList();
+      final filenames = result.map((n) => n.filename);
+      expect(filenames, contains('s1.json'));
+      expect(filenames, isNot(contains('s2.json')));
+    });
+
+    test('excludes other primaryTypes', () async {
+      await writeFixture('c.json', {'primaryType': 'contact', 'title': 'C'});
+      final result = await service.streamFloatingNotes(tempDir.path).toList();
+      expect(result.map((n) => n.filename), isNot(contains('c.json')));
+    });
+
+    test('carries title and body through', () async {
+      await writeFixture('u2.json', {'primaryType': 'unknown', 'title': 'Title', 'body': 'Body text'});
+      final result = await service.streamFloatingNotes(tempDir.path).toList();
+      final entry = result.firstWhere((n) => n.filename == 'u2.json');
+      expect(entry.title, 'Title');
+      expect(entry.body, 'Body text');
+    });
+
+    test('skips unparsable json files without throwing', () async {
+      await File('${tempDir.path}/broken.json').writeAsString('{not json');
+      await writeFixture('ok.json', {'primaryType': 'unknown'});
+      final result = await service.streamFloatingNotes(tempDir.path).toList();
+      expect(result.map((n) => n.filename), ['ok.json']);
+    });
+
+    test('finds every match across multiple concurrency batches, none dropped', () async {
+      const total = 90;
+      for (var i = 0; i < total; i++) {
+        await writeFixture('n$i.json', {'primaryType': 'unknown', 'title': 'N$i'});
+      }
+      // concurrency (32) doesn't evenly divide total, exercising a partial final batch too.
+      final result = await service.streamFloatingNotes(tempDir.path, concurrency: 32).toList();
+      expect(result.length, total);
+      expect(
+        result.map((n) => n.filename).toSet(),
+        {for (var i = 0; i < total; i++) 'n$i.json'},
+      );
+    });
+  });
+
   group('writeJsonFile', () {
     test('writes triaged as the literal string "true", not a boolean', () async {
       await writeFixture('d.json', {'primaryType': 'scratchpad'});

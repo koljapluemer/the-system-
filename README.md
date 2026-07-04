@@ -34,6 +34,42 @@ flutter build apk --debug   # debug APK, auto-signed, ready to sideload
 
 Install a built APK: `adb install -r build/app/outputs/flutter-apk/app-debug.apk`
 
+### Installing the Linux build on Ubuntu
+
+`flutter build linux` produces a self-contained bundle at `build/linux/x64/release/bundle/` (or `arm64` on ARM). For personal use on a single machine, a `.deb`/AppImage/Snap build is unnecessary ceremony — just install the bundle into your user directory (no `sudo` needed):
+
+```bash
+flutter build linux --release
+
+mkdir -p ~/.local/share/the_system
+cp -r build/linux/x64/release/bundle/* ~/.local/share/the_system/
+mkdir -p ~/.local/bin
+ln -sf ~/.local/share/the_system/the_system ~/.local/bin/the_system
+```
+
+Then add a desktop entry so it shows up in the app launcher:
+
+```bash
+mkdir -p ~/.local/share/applications
+cat <<EOF > ~/.local/share/applications/the_system.desktop
+[Desktop Entry]
+Type=Application
+Name=the-system
+Exec=$HOME/.local/share/the_system/the_system
+Icon=$HOME/.local/share/the_system/data/flutter_assets/assets/icon.png
+Categories=Utility;
+EOF
+```
+
+(Skip the `Icon=` line, or point it at your own icon, if `assets/icon.png` doesn't exist.)
+
+To update after pulling new changes, just rebuild and re-copy over the installed bundle — no reinstall needed:
+
+```bash
+flutter build linux --release
+cp -r build/linux/x64/release/bundle/* ~/.local/share/the_system/
+```
+
 ## Analysis & tests
 
 ```bash
