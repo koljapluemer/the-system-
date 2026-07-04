@@ -61,8 +61,6 @@ Categories=Utility;
 EOF
 ```
 
-(Skip the `Icon=` line, or point it at your own icon, if `assets/icon.png` doesn't exist.)
-
 To update after pulling new changes, just rebuild and re-copy over the installed bundle — no reinstall needed:
 
 ```bash
