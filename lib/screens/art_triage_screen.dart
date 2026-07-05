@@ -1,20 +1,26 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:io';
 
-import '../state/scratchpad_triage_notifier.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
+
+import '../state/art_triage_notifier.dart';
+import '../state/providers.dart';
 import '../state/triage_notifier.dart';
 
-class ScratchpadTriageScreen extends ConsumerWidget {
-  const ScratchpadTriageScreen({super.key});
+class ArtTriageScreen extends ConsumerWidget {
+  const ArtTriageScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(scratchpadTriageProvider);
-    final notifier = ref.read(scratchpadTriageProvider.notifier);
+    final state = ref.watch(artTriageProvider);
+    final notifier = ref.read(artTriageProvider.notifier);
+    final folder = ref.watch(dataFolderProvider).value;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scratchpad Triage'),
+        title: const Text('Art Triage'),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -27,14 +33,15 @@ class ScratchpadTriageScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Center(child: _buildBody(context, state, notifier)),
+      body: Center(child: _buildBody(context, state, notifier, folder)),
     );
   }
 
   Widget _buildBody(
     BuildContext context,
     TriageState state,
-    ScratchpadTriageNotifier notifier,
+    ArtTriageNotifier notifier,
+    String? folder,
   ) {
     if (state.loading) {
       return const CircularProgressIndicator();
@@ -44,7 +51,7 @@ class ScratchpadTriageScreen extends ConsumerWidget {
       return const Padding(
         padding: EdgeInsets.all(32),
         child: Text(
-          'All caught up — no more scratchpad notes to triage.',
+          'All caught up — no more art to triage.',
           textAlign: TextAlign.center,
         ),
       );
@@ -52,7 +59,8 @@ class ScratchpadTriageScreen extends ConsumerWidget {
 
     final note = state.currentNote!;
     final title = note['title'] as String? ?? '(untitled)';
-    final body = note['body'] as String? ?? '';
+    final content = note['content'] as String? ?? '';
+    final image = note['image'] as String?;
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 560),
@@ -70,8 +78,15 @@ class ScratchpadTriageScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(title, style: Theme.of(context).textTheme.titleMedium),
+                    if (image != null && folder != null) ...[
+                      const SizedBox(height: 12),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: Image.file(File(p.join(folder, 'media', image))),
+                      ),
+                    ],
                     const SizedBox(height: 12),
-                    Text(body, style: Theme.of(context).textTheme.bodyMedium),
+                    MarkdownBody(data: content),
                   ],
                 ),
               ),

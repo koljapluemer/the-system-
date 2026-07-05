@@ -52,6 +52,30 @@ class NotesService {
     return matches;
   }
 
+  /// Scans the data folder for art notes that still need triage, i.e.
+  /// `primaryType == "art"` and `triaged != "true"`. Returns filenames only;
+  /// use [readJsonFile] to load the full contents of one.
+  Future<List<String>> listArtUntriaged(String folder) async {
+    final dir = Directory(folder);
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
+    final matches = <String>[];
+    await for (final entity in dir.list()) {
+      if (entity is! File || !entity.path.endsWith('.json')) continue;
+      try {
+        final data = jsonDecode(await entity.readAsString());
+        if (data is! Map<String, dynamic>) continue;
+        if (data['primaryType'] != 'art') continue;
+        if (data['triaged'] == 'true') continue;
+        matches.add(p.basename(entity.path));
+      } catch (_) {
+        continue;
+      }
+    }
+    return matches;
+  }
+
   /// Scans the data folder for notes eligible to appear on the floating-notes
   /// canvas: `primaryType == "unknown"`, or `primaryType == "scratchpad"` that
   /// has already been triaged (`triaged == "true"`). Every matching note is
