@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'art_triage_screen.dart';
 import 'floating_notes_screen.dart';
 import 'folder_setup_screen.dart';
+import 'invalid_json_screen.dart';
 import 'quick_add_screen.dart';
 import 'scratchpad_triage_screen.dart';
+import '../state/providers.dart';
 
 class _NavLink {
   final String id;
@@ -20,7 +23,7 @@ const _links = [
   _NavLink('floating-notes', 'Floating Notes'),
 ];
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   void _navigate(BuildContext context, String id) {
@@ -43,8 +46,35 @@ class HomeScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _checkForInvalidJson(BuildContext context, WidgetRef ref) async {
+    final folder = ref.read(dataFolderProvider).value;
+    if (folder == null) return;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final invalid = await ref.read(jsonSchemaServiceProvider).findInvalidJsonFiles(folder);
+    if (!context.mounted) return;
+    Navigator.pop(context); // dismiss the progress dialog
+
+    if (invalid.isEmpty) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(const SnackBar(content: Text('Nothing found')));
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => InvalidJsonScreen(filenames: invalid)),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
@@ -77,6 +107,16 @@ class HomeScreen extends StatelessWidget {
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _navigate(context, link.id),
             ),
+          const Divider(height: 1),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Text('Maintenance'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.rule_folder),
+            title: const Text('Check for invalid JSON files'),
+            onTap: () => _checkForInvalidJson(context, ref),
+          ),
         ],
       ),
     );

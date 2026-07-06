@@ -1,10 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../services/json_schema_service.dart';
 import '../services/notes_service.dart';
 import '../services/settings_service.dart';
 import '../services/storage_permission_service.dart';
 
 final notesServiceProvider = Provider<NotesService>((ref) => const NotesService());
+
+final jsonSchemaServiceProvider =
+    Provider<JsonSchemaService>((ref) => const JsonSchemaService());
 
 final settingsServiceProvider = Provider<SettingsService>((ref) => const SettingsService());
 

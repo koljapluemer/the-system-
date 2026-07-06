@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "The System note file",
+  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: unknown, scratchpad, art, or book.",
+  "definitions": {
+    "rels": {
+      "description": "Relationships to other note files, e.g. [\"source\", \"other-note.json\"].",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          { "type": "string" },
+          { "type": "string" }
+        ],
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "triaged": {
+      "description": "Written by the triage flows once a note has been kept.",
+      "type": "string",
+      "enum": ["true"]
+    }
+  },
+  "oneOf": [
+    {
+      "description": "Quick Add notes and anything else not yet sorted into a specific flow.",
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "unknown" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "rels": { "$ref": "#/definitions/rels" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Scratchpad Triage notes.",
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "scratchpad" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "rels": { "$ref": "#/definitions/rels" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title", "body"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Art Triage notes.",
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "art" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "image": { "type": "string" },
+        "rels": { "$ref": "#/definitions/rels" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title", "content"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Book references, cited as the source of scratchpad notes via rels.",
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "book" },
+        "title": { "type": "string" },
+        "rels": { "$ref": "#/definitions/rels" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title"],
+      "additionalProperties": false
+    }
+  ]
+}
