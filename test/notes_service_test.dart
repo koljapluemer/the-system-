@@ -98,6 +98,28 @@ void main() {
     });
   });
 
+  group('createNote', () {
+    test('writes the given content under a filename slugified from slugSource', () async {
+      final filename = await service.createNote(
+        tempDir.path,
+        {'primaryType': 'hypothesis', 'title': 'Something else', 'status': 'ACTIVE'},
+        slugSource: 'Buy Milk!! 2%',
+      );
+      expect(filename, matches(RegExp(r'^buy-milk-2-[0-9a-f]{6}\.json$')));
+      final note = await service.readJsonFile(tempDir.path, filename);
+      expect(note['primaryType'], 'hypothesis');
+      expect(note['title'], 'Something else');
+    });
+
+    test('two notes with the same slugSource get different filenames', () async {
+      final a = await service.createNote(tempDir.path, {'primaryType': 'hypothesis'},
+          slugSource: 'Same');
+      final b = await service.createNote(tempDir.path, {'primaryType': 'hypothesis'},
+          slugSource: 'Same');
+      expect(a, isNot(b));
+    });
+  });
+
   group('createQuickNote', () {
     test('writes primaryType "unknown" with title and body', () async {
       final filename = await service.createQuickNote(

@@ -59,6 +59,37 @@ void main() {
     });
   });
 
+  group('hypothesesWithStatus', () {
+    test('includes hypothesis notes matching the given status', () {
+      final index = NoteIndex(entries: {
+        'h1.json': {'primaryType': 'hypothesis', 'status': 'ACTIVE', 'title': 'H1'},
+      });
+      final filenames = index.hypothesesWithStatus('ACTIVE').map((s) => s.filename);
+      expect(filenames, contains('h1.json'));
+    });
+
+    test('excludes hypothesis notes with a different status', () {
+      final index = NoteIndex(entries: {
+        'h2.json': {'primaryType': 'hypothesis', 'status': 'SUPPORTED', 'title': 'H2'},
+      });
+      expect(index.hypothesesWithStatus('ACTIVE'), isEmpty);
+    });
+
+    test('excludes notes with a different primaryType', () {
+      final index = NoteIndex(entries: {
+        'a.json': {'primaryType': 'art', 'status': 'ACTIVE'},
+      });
+      expect(index.hypothesesWithStatus('ACTIVE'), isEmpty);
+    });
+
+    test('defaults title to empty string when missing', () {
+      final index = NoteIndex(entries: {
+        'h3.json': {'primaryType': 'hypothesis', 'status': 'ACTIVE'},
+      });
+      expect(index.hypothesesWithStatus('ACTIVE').first.title, '');
+    });
+  });
+
   group('floatingPool', () {
     test('includes notes with primaryType "unknown"', () {
       final index = NoteIndex(entries: {

@@ -55,6 +55,26 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
     return filename;
   }
 
+  /// Creates a new `primaryType: "hypothesis"` note, ACTIVE with empty
+  /// context/experiment/notes/findings sections, from the inline add field on
+  /// the Hypotheses screen.
+  Future<String> createHypothesis({required String title}) async {
+    final folder = (await ref.read(dataFolderProvider.future))!;
+    final content = <String, dynamic>{
+      'primaryType': 'hypothesis',
+      'title': title,
+      'status': 'ACTIVE',
+      'context': <String>[],
+      'experiment': <String>[],
+      'notes': <String>[],
+      'findings': <String>[],
+    };
+    final filename =
+        await ref.read(notesServiceProvider).createNote(folder, content, slugSource: title);
+    await update((index) => index.copyWith(entries: {...index.entries, filename: content}));
+    return filename;
+  }
+
   /// Forces a fresh full-folder rescan, e.g. as a manual escape hatch if the
   /// in-memory index is ever suspected to have drifted from disk.
   Future<void> refresh() async {

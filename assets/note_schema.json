@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "The System note file",
-  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: unknown, scratchpad, art, or book.",
+  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: unknown, scratchpad, art, book, or hypothesis.",
   "definitions": {
     "rels": {
       "description": "Relationships to other note files, e.g. [\"source\", \"other-note.json\"].",
@@ -73,6 +73,22 @@
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Hypotheses tracked through a research workflow: context, experiment, notes, and findings logged as free-text entries, resolved as supported or disproven.",
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "hypothesis" },
+        "title": { "type": "string" },
+        "status": { "type": "string", "enum": ["ACTIVE", "SUPPORTED", "DISPROVEN"] },
+        "context": { "type": "array", "items": { "type": "string" } },
+        "experiment": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "array", "items": { "type": "string" } },
+        "findings": { "type": "array", "items": { "type": "string" } },
+        "rels": { "$ref": "#/definitions/rels" }
+      },
+      "required": ["primaryType", "title", "status"],
       "additionalProperties": false
     }
   ]

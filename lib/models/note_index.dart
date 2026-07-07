@@ -38,6 +38,14 @@ class NoteIndex {
             NoteSummary(filename: e.key, title: e.value['title'] as String? ?? ''),
       ];
 
+  /// Summaries of hypothesis notes currently in [status] (e.g. "ACTIVE"),
+  /// for the dedicated Hypotheses screen.
+  List<NoteSummary> hypothesesWithStatus(String status) => [
+        for (final e in entries.entries)
+          if (e.value['primaryType'] == 'hypothesis' && e.value['status'] == status)
+            NoteSummary(filename: e.key, title: e.value['title'] as String? ?? ''),
+      ];
+
   /// Notes eligible for the floating-notes canvas: `primaryType == "unknown"`,
   /// or `primaryType == "scratchpad"` that has already been triaged.
   List<FloatingNoteEntry> floatingPool() => [

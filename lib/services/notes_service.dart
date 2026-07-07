@@ -92,21 +92,30 @@ class NotesService {
     }
   }
 
+  /// Creates a new note file with an arbitrary [content] map. The filename is
+  /// a slug of [slugSource] plus a random 6-hex-digit suffix, so titles can
+  /// repeat without colliding on disk.
+  Future<String> createNote(
+    String folder,
+    NoteFile content, {
+    required String slugSource,
+  }) async {
+    final filename = '${_slugify(slugSource)}-${_randomHex6()}.json';
+    await writeJsonFile(folder, filename, content);
+    return filename;
+  }
+
   /// Creates a new `primaryType: "unknown"` note from the Quick Add flow.
-  /// The filename is a slug of the title plus a random 6-hex-digit suffix,
-  /// so titles can repeat without colliding on disk.
   Future<String> createQuickNote(
     String folder, {
     required String title,
     String body = '',
-  }) async {
-    final filename = '${_slugify(title)}-${_randomHex6()}.json';
-    await writeJsonFile(folder, filename, {
-      'primaryType': 'unknown',
-      'title': title,
-      'body': body,
-    });
-    return filename;
+  }) {
+    return createNote(
+      folder,
+      {'primaryType': 'unknown', 'title': title, 'body': body},
+      slugSource: title,
+    );
   }
 
   String _slugify(String title) {

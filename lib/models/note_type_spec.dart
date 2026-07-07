@@ -60,4 +60,15 @@ const noteTypeSpecs = [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
     ],
   ),
+  // Only 'title' is exposed here: status and the context/experiment/notes/
+  // findings arrays are managed by the dedicated Hypotheses flow, not the
+  // generic edit form (which merges only the fields listed here, so those
+  // keys are left untouched by it).
+  NoteTypeSpec(
+    primaryType: 'hypothesis',
+    label: 'Hypothesis',
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Title', required: true),
+    ],
+  ),
 ];

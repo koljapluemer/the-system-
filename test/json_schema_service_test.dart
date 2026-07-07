@@ -53,6 +53,67 @@ void main() {
       expect(result, isNot(contains('c.json')));
     });
 
+    test('accepts a well-formed hypothesis note with populated sections', () async {
+      final index = NoteIndex(entries: {
+        'g.json': {
+          'primaryType': 'hypothesis',
+          'title': 'G',
+          'status': 'ACTIVE',
+          'context': ['some context'],
+          'experiment': ['do the thing'],
+          'notes': ['a note'],
+          'findings': ['a finding'],
+        },
+      });
+      final result = await service.findInvalid(index);
+      expect(result, isNot(contains('g.json')));
+    });
+
+    test('accepts a well-formed hypothesis note with empty sections', () async {
+      final index = NoteIndex(entries: {
+        'h.json': {
+          'primaryType': 'hypothesis',
+          'title': 'H',
+          'status': 'ACTIVE',
+          'context': <String>[],
+          'experiment': <String>[],
+          'notes': <String>[],
+          'findings': <String>[],
+        },
+      });
+      final result = await service.findInvalid(index);
+      expect(result, isNot(contains('h.json')));
+    });
+
+    test('flags a hypothesis note with an invalid status value', () async {
+      final index = NoteIndex(entries: {
+        'i.json': {'primaryType': 'hypothesis', 'title': 'I', 'status': 'MAYBE'},
+      });
+      final result = await service.findInvalid(index);
+      expect(result, contains('i.json'));
+    });
+
+    test('flags a hypothesis note missing the required title field', () async {
+      final index = NoteIndex(entries: {
+        'j.json': {'primaryType': 'hypothesis', 'status': 'ACTIVE'},
+      });
+      final result = await service.findInvalid(index);
+      expect(result, contains('j.json'));
+    });
+
+    test('flags a hypothesis note with a non-string array element', () async {
+      final index = NoteIndex(entries: {
+        'k.json': {
+          'primaryType': 'hypothesis',
+          'title': 'K',
+          'status': 'ACTIVE',
+          'context': [1, 2],
+        },
+      });
+      final result = await service.findInvalid(index);
+      expect(result, contains('k.json'));
+    });
+
     test('flags a scratchpad note missing the required body field', () async {
       final index = NoteIndex(entries: {
         'd.json': {'primaryType': 'scratchpad', 'title': 'D'},
