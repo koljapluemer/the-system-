@@ -1,0 +1,88 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:the_system/state/note_index_notifier.dart';
+import 'package:the_system/state/providers.dart';
+
+/// Returns a fixed folder path immediately, so tests don't need a real
+/// SharedPreferences platform channel.
+class _FixedFolderNotifier extends DataFolderNotifier {
+  final String folder;
+  _FixedFolderNotifier(this.folder);
+
+  @override
+  Future<String?> build() async => folder;
+}
+
+void main() {
+  late Directory tempDir;
+  late ProviderContainer container;
+
+  setUp(() async {
+    tempDir = await Directory.systemTemp.createTemp('note_index_notifier_test_');
+    container = ProviderContainer(
+      overrides: [
+        dataFolderProvider.overrideWith(() => _FixedFolderNotifier(tempDir.path)),
+      ],
+    );
+  });
+
+  tearDown(() async {
+    container.dispose();
+    if (await tempDir.exists()) {
+      await tempDir.delete(recursive: true);
+    }
+  });
+
+  Future<void> writeFixture(String filename, Map<String, dynamic> content) async {
+    await File('${tempDir.path}/$filename').writeAsString(jsonEncode(content));
+  }
+
+  test('build scans the folder into entries and unparsable', () async {
+    await writeFixture('a.json', {'primaryType': 'scratchpad', 'title': 'A'});
+    await File('${tempDir.path}/broken.json').writeAsString('{not json');
+
+    final index = await container.read(noteIndexProvider.future);
+    expect(index.entries['a.json'], {'primaryType': 'scratchpad', 'title': 'A'});
+    expect(index.unparsable, contains('broken.json'));
+  });
+
+  test('write updates both the in-memory entry and the file on disk', () async {
+    await container.read(noteIndexProvider.future);
+    await container
+        .read(noteIndexProvider.notifier)
+        .write('new.json', {'primaryType': 'unknown', 'title': 'New'});
+
+    final index = container.read(noteIndexProvider).value!;
+    expect(index.entries['new.json'], {'primaryType': 'unknown', 'title': 'New'});
+
+    final onDisk = jsonDecode(await File('${tempDir.path}/new.json').readAsString());
+    expect(onDisk['title'], 'New');
+  });
+
+  test('delete removes both the in-memory entry and the file on disk', () async {
+    await writeFixture('gone.json', {'primaryType': 'unknown', 'title': 'Gone'});
+    await container.read(noteIndexProvider.future);
+
+    await container.read(noteIndexProvider.notifier).delete('gone.json');
+
+    final index = container.read(noteIndexProvider).value!;
+    expect(index.entries.containsKey('gone.json'), isFalse);
+    expect(await File('${tempDir.path}/gone.json').exists(), isFalse);
+  });
+
+  test('createQuickNote adds an unknown note to both entries and disk', () async {
+    await container.read(noteIndexProvider.future);
+
+    final filename = await container
+        .read(noteIndexProvider.notifier)
+        .createQuickNote(title: 'Quick', body: 'some body');
+
+    final index = container.read(noteIndexProvider).value!;
+    expect(index.entries[filename]?['primaryType'], 'unknown');
+    expect(index.entries[filename]?['title'], 'Quick');
+    expect(await File('${tempDir.path}/$filename').exists(), isTrue);
+  });
+}

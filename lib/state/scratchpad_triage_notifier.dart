@@ -1,12 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../services/notes_service.dart';
 import 'triage_notifier.dart';
 
 class ScratchpadTriageNotifier extends TriageNotifier {
   @override
-  Future<List<String>> fetchQueue(NotesService notes, String folder) =>
-      notes.listScratchpadUntriaged(folder);
+  String get primaryType => 'scratchpad';
 }
 
 final scratchpadTriageProvider =

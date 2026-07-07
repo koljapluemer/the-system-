@@ -5,8 +5,10 @@ import 'art_triage_screen.dart';
 import 'floating_notes_screen.dart';
 import 'folder_setup_screen.dart';
 import 'invalid_json_screen.dart';
+import 'note_lists_screen.dart';
 import 'quick_add_screen.dart';
 import 'scratchpad_triage_screen.dart';
+import '../state/note_index_notifier.dart';
 import '../state/providers.dart';
 
 class _NavLink {
@@ -21,6 +23,7 @@ const _links = [
   _NavLink('scratchpad-triage', 'Scratchpad Triage'),
   _NavLink('art-triage', 'Art Triage'),
   _NavLink('floating-notes', 'Floating Notes'),
+  _NavLink('lists', 'Lists'),
 ];
 
 class HomeScreen extends ConsumerWidget {
@@ -43,20 +46,23 @@ class HomeScreen extends ConsumerWidget {
           context,
           MaterialPageRoute(builder: (_) => const FloatingNotesScreen()),
         );
+      case 'lists':
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const NoteListsScreen()),
+        );
     }
   }
 
   Future<void> _checkForInvalidJson(BuildContext context, WidgetRef ref) async {
-    final folder = ref.read(dataFolderProvider).value;
-    if (folder == null) return;
-
     showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (_) => const Center(child: CircularProgressIndicator()),
     );
 
-    final invalid = await ref.read(jsonSchemaServiceProvider).findInvalidJsonFiles(folder);
+    final index = await ref.read(noteIndexProvider.future);
+    final invalid = await ref.read(jsonSchemaServiceProvider).findInvalid(index);
     if (!context.mounted) return;
     Navigator.pop(context); // dismiss the progress dialog
 

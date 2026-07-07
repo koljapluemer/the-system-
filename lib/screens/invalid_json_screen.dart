@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Lists the filenames flagged by [JsonSchemaService.findInvalidJsonFiles].
+/// Lists the filenames flagged by [JsonSchemaService.findInvalid].
 class InvalidJsonScreen extends StatelessWidget {
   final List<String> filenames;
 

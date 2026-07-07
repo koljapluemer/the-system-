@@ -4,8 +4,8 @@ import 'dart:math';
 
 import 'package:path/path.dart' as p;
 
-import '../models/floating_note_entry.dart';
 import '../models/note_file.dart';
+import '../models/note_scan_result.dart';
 
 /// Reads/writes/lists/deletes note files that live as flat JSON files
 /// directly inside a single data folder. Mirrors the file-IO command
@@ -28,66 +28,16 @@ class NotesService {
     return File(p.join(folder, filename));
   }
 
-  /// Scans the data folder for scratchpad notes that still need triage, i.e.
-  /// `primaryType == "scratchpad"` and `triaged != "true"`. Returns filenames
-  /// only; use [readJsonFile] to load the full contents of one.
-  Future<List<String>> listScratchpadUntriaged(String folder) async {
-    final dir = Directory(folder);
-    if (!await dir.exists()) {
-      await dir.create(recursive: true);
-    }
-    final matches = <String>[];
-    await for (final entity in dir.list()) {
-      if (entity is! File || !entity.path.endsWith('.json')) continue;
-      try {
-        final data = jsonDecode(await entity.readAsString());
-        if (data is! Map<String, dynamic>) continue;
-        if (data['primaryType'] != 'scratchpad') continue;
-        if (data['triaged'] == 'true') continue;
-        matches.add(p.basename(entity.path));
-      } catch (_) {
-        continue;
-      }
-    }
-    return matches;
-  }
-
-  /// Scans the data folder for art notes that still need triage, i.e.
-  /// `primaryType == "art"` and `triaged != "true"`. Returns filenames only;
-  /// use [readJsonFile] to load the full contents of one.
-  Future<List<String>> listArtUntriaged(String folder) async {
-    final dir = Directory(folder);
-    if (!await dir.exists()) {
-      await dir.create(recursive: true);
-    }
-    final matches = <String>[];
-    await for (final entity in dir.list()) {
-      if (entity is! File || !entity.path.endsWith('.json')) continue;
-      try {
-        final data = jsonDecode(await entity.readAsString());
-        if (data is! Map<String, dynamic>) continue;
-        if (data['primaryType'] != 'art') continue;
-        if (data['triaged'] == 'true') continue;
-        matches.add(p.basename(entity.path));
-      } catch (_) {
-        continue;
-      }
-    }
-    return matches;
-  }
-
-  /// Scans the data folder for notes eligible to appear on the floating-notes
-  /// canvas: `primaryType == "unknown"`, or `primaryType == "scratchpad"` that
-  /// has already been triaged (`triaged == "true"`). Every matching note is
-  /// yielded eventually — nothing is dropped or capped, however large the
-  /// folder — but reads happen [concurrency]-wide instead of one file at a
-  /// time, so the wall-clock cost of scanning a folder with tens of thousands
-  /// of files is dominated by per-file I/O latency in parallel rather than in
-  /// series (this matters most on Android, where each file read on
-  /// MANAGE_EXTERNAL_STORAGE-backed paths carries real per-call overhead).
-  /// Results still stream out incrementally, so callers can render matches as
-  /// they arrive instead of waiting for the whole folder to finish.
-  Stream<FloatingNoteEntry> streamFloatingNotes(String folder, {int concurrency = 32}) async* {
+  /// Scans the data folder once, decoding every `.json` file. Reads happen
+  /// [concurrency]-wide instead of one file at a time, so the wall-clock cost
+  /// of scanning a folder with tens of thousands of files is dominated by
+  /// per-file I/O latency in parallel rather than in series (this matters
+  /// most on Android, where each file read on MANAGE_EXTERNAL_STORAGE-backed
+  /// paths carries real per-call overhead). Every `.json` file is yielded
+  /// exactly once, with `data` null for anything that isn't parsable as a
+  /// JSON object — callers that care about invalid files (e.g. the
+  /// invalid-JSON checker) can still see them.
+  Stream<NoteScanResult> scanNotes(String folder, {int concurrency = 32}) async* {
     final dir = Directory(folder);
     if (!await dir.exists()) {
       await dir.create(recursive: true);
@@ -103,28 +53,21 @@ class NotesService {
 
     for (var i = 0; i < jsonFiles.length; i += concurrency) {
       final batch = jsonFiles.skip(i).take(concurrency);
-      final results = await Future.wait(batch.map(_readFloatingEntry));
-      for (final entry in results) {
-        if (entry != null) yield entry;
+      final results = await Future.wait(batch.map(_readScanResult));
+      for (final result in results) {
+        yield result;
       }
     }
   }
 
-  Future<FloatingNoteEntry?> _readFloatingEntry(File file) async {
+  Future<NoteScanResult> _readScanResult(File file) async {
+    final filename = p.basename(file.path);
     try {
       final data = jsonDecode(await file.readAsString());
-      if (data is! Map<String, dynamic>) return null;
-      final primaryType = data['primaryType'];
-      final isUnknown = primaryType == 'unknown';
-      final isTriagedScratchpad = primaryType == 'scratchpad' && data['triaged'] == 'true';
-      if (!isUnknown && !isTriagedScratchpad) return null;
-      return FloatingNoteEntry(
-        filename: p.basename(file.path),
-        title: data['title'] as String? ?? '',
-        body: data['body'] as String? ?? '',
-      );
+      if (data is! Map<String, dynamic>) return NoteScanResult(filename: filename);
+      return NoteScanResult(filename: filename, data: data);
     } catch (_) {
-      return null;
+      return NoteScanResult(filename: filename);
     }
   }
 

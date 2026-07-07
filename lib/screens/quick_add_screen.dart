@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../state/providers.dart';
+import '../state/note_index_notifier.dart';
 
 /// Fast-path capture: title + optional body, written straight to disk as a
 /// `primaryType: "unknown"` note so it shows up wherever unknown notes do
@@ -30,9 +30,7 @@ class _QuickAddScreenState extends ConsumerState<QuickAddScreen> {
     if (title.isEmpty) return;
 
     setState(() => _saving = true);
-    final folder = ref.read(dataFolderProvider).value!;
-    await ref.read(notesServiceProvider).createQuickNote(
-          folder,
+    await ref.read(noteIndexProvider.notifier).createQuickNote(
           title: title,
           body: _bodyController.text.trim(),
         );

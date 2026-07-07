@@ -22,86 +22,50 @@ void main() {
     await File('${tempDir.path}/$filename').writeAsString(jsonEncode(content));
   }
 
-  group('listScratchpadUntriaged', () {
-    test('includes scratchpad notes with no triaged field', () async {
+  group('scanNotes', () {
+    test('yields decoded content for a well-formed note', () async {
       await writeFixture('a.json', {'primaryType': 'scratchpad', 'title': 'A'});
-      final result = await service.listScratchpadUntriaged(tempDir.path);
-      expect(result, contains('a.json'));
+      final result = await service.scanNotes(tempDir.path).toList();
+      final entry = result.firstWhere((r) => r.filename == 'a.json');
+      expect(entry.data, {'primaryType': 'scratchpad', 'title': 'A'});
     });
 
-    test('excludes notes already triaged "true"', () async {
-      await writeFixture('b.json', {'primaryType': 'scratchpad', 'triaged': 'true'});
-      final result = await service.listScratchpadUntriaged(tempDir.path);
-      expect(result, isNot(contains('b.json')));
+    test('yields every file regardless of primaryType', () async {
+      await writeFixture('b.json', {'primaryType': 'contact'});
+      final result = await service.scanNotes(tempDir.path).toList();
+      expect(result.map((r) => r.filename), contains('b.json'));
     });
 
-    test('excludes notes with a different primaryType', () async {
-      await writeFixture('c.json', {'primaryType': 'contact'});
-      final result = await service.listScratchpadUntriaged(tempDir.path);
-      expect(result, isNot(contains('c.json')));
-    });
-
-    test('skips unparsable json files without throwing', () async {
+    test('yields null data for unparsable json files, without throwing', () async {
       await File('${tempDir.path}/broken.json').writeAsString('{not json');
-      await writeFixture('ok.json', {'primaryType': 'scratchpad'});
-      final result = await service.listScratchpadUntriaged(tempDir.path);
-      expect(result, ['ok.json']);
+      final result = await service.scanNotes(tempDir.path).toList();
+      final entry = result.firstWhere((r) => r.filename == 'broken.json');
+      expect(entry.data, isNull);
+    });
+
+    test('yields null data for json that decodes to a non-object', () async {
+      await File('${tempDir.path}/list.json').writeAsString('[1, 2, 3]');
+      final result = await service.scanNotes(tempDir.path).toList();
+      final entry = result.firstWhere((r) => r.filename == 'list.json');
+      expect(entry.data, isNull);
     });
 
     test('ignores non-json files', () async {
       await File('${tempDir.path}/notes.txt').writeAsString('hello');
-      final result = await service.listScratchpadUntriaged(tempDir.path);
-      expect(result, isEmpty);
-    });
-  });
-
-  group('streamFloatingNotes', () {
-    test('includes notes with primaryType "unknown"', () async {
-      await writeFixture('u.json', {'primaryType': 'unknown', 'title': 'U', 'body': 'body'});
-      final result = await service.streamFloatingNotes(tempDir.path).toList();
-      expect(result.map((n) => n.filename), contains('u.json'));
+      final result = await service.scanNotes(tempDir.path).toList();
+      expect(result.map((r) => r.filename), isNot(contains('notes.txt')));
     });
 
-    test('includes scratchpad notes only once triaged "true"', () async {
-      await writeFixture('s1.json', {'primaryType': 'scratchpad', 'triaged': 'true', 'title': 'S1'});
-      await writeFixture('s2.json', {'primaryType': 'scratchpad', 'title': 'S2'});
-      final result = await service.streamFloatingNotes(tempDir.path).toList();
-      final filenames = result.map((n) => n.filename);
-      expect(filenames, contains('s1.json'));
-      expect(filenames, isNot(contains('s2.json')));
-    });
-
-    test('excludes other primaryTypes', () async {
-      await writeFixture('c.json', {'primaryType': 'contact', 'title': 'C'});
-      final result = await service.streamFloatingNotes(tempDir.path).toList();
-      expect(result.map((n) => n.filename), isNot(contains('c.json')));
-    });
-
-    test('carries title and body through', () async {
-      await writeFixture('u2.json', {'primaryType': 'unknown', 'title': 'Title', 'body': 'Body text'});
-      final result = await service.streamFloatingNotes(tempDir.path).toList();
-      final entry = result.firstWhere((n) => n.filename == 'u2.json');
-      expect(entry.title, 'Title');
-      expect(entry.body, 'Body text');
-    });
-
-    test('skips unparsable json files without throwing', () async {
-      await File('${tempDir.path}/broken.json').writeAsString('{not json');
-      await writeFixture('ok.json', {'primaryType': 'unknown'});
-      final result = await service.streamFloatingNotes(tempDir.path).toList();
-      expect(result.map((n) => n.filename), ['ok.json']);
-    });
-
-    test('finds every match across multiple concurrency batches, none dropped', () async {
+    test('finds every file across multiple concurrency batches, none dropped', () async {
       const total = 90;
       for (var i = 0; i < total; i++) {
         await writeFixture('n$i.json', {'primaryType': 'unknown', 'title': 'N$i'});
       }
       // concurrency (32) doesn't evenly divide total, exercising a partial final batch too.
-      final result = await service.streamFloatingNotes(tempDir.path, concurrency: 32).toList();
+      final result = await service.scanNotes(tempDir.path, concurrency: 32).toList();
       expect(result.length, total);
       expect(
-        result.map((n) => n.filename).toSet(),
+        result.map((r) => r.filename).toSet(),
         {for (var i = 0; i < total; i++) 'n$i.json'},
       );
     });
