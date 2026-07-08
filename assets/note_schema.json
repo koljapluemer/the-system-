@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "The System note file",
-  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: unknown, scratchpad, art, book, hypothesis, gestalt, context, ifThen, description, quote, source, or entity.",
+  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: unknown, scratchpad, art, book, hypothesis, gestalt, context, ifThen, description, quote, source, entity, or story.",
   "definitions": {
     "rels": {
       "description": "Relationships to other note files, e.g. [\"source\", \"other-note.json\"].",
@@ -190,6 +190,20 @@
       "type": "object",
       "properties": {
         "primaryType": { "const": "entity" },
+        "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
+        "content": { "type": "string" },
+        "rels": { "$ref": "#/definitions/rels" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Story notes: a narrative account worth keeping.",
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "story" },
         "title": { "type": "string" },
         "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },

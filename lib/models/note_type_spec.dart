@@ -141,4 +141,13 @@ const noteTypeSpecs = [
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
     ],
   ),
+  NoteTypeSpec(
+    primaryType: 'story',
+    label: 'Story',
+    creatable: true,
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Title', required: true),
+      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
+    ],
+  ),
 ];
