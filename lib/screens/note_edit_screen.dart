@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/note_file.dart';
 import '../models/note_type_spec.dart';
 import '../state/note_index_notifier.dart';
+import '../widgets/array_list_section.dart';
 
 /// Generic edit form for a note's core fields, driven by [spec].
 class NoteEditScreen extends ConsumerStatefulWidget {
@@ -21,6 +22,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen> {
   NoteFile? _original;
   bool _missing = false;
   bool _saving = false;
+  List<String> _aliases = [];
 
   @override
   void initState() {
@@ -39,6 +41,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen> {
     for (final field in widget.spec.fields) {
       _controllers[field.key]!.text = note[field.key] as String? ?? '';
     }
+    _aliases = note.stringList('aliases');
     _original = note;
   }
 
@@ -64,6 +67,7 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen> {
       final raw = _controllers[field.key]!.text;
       updated[field.key] = field.multiline ? raw : raw.trim();
     }
+    updated['aliases'] = _aliases;
     await ref.read(noteIndexProvider.notifier).write(widget.filename, updated);
     if (!mounted) return;
     Navigator.pop(context);
@@ -109,6 +113,12 @@ class _NoteEditScreenState extends ConsumerState<NoteEditScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      if (field.key == 'title')
+                        ArrayListSection(
+                          label: 'Aliases',
+                          items: _aliases,
+                          onChanged: (items) => setState(() => _aliases = items),
+                        ),
                     ],
                     const SizedBox(height: 8),
                     Row(

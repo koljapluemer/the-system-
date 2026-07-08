@@ -20,6 +20,11 @@
       "description": "Written by the triage flows once a note has been kept.",
       "type": "string",
       "enum": ["true"]
+    },
+    "aliases": {
+      "description": "Alternate names for this note.",
+      "type": "array",
+      "items": { "type": "string" }
     }
   },
   "oneOf": [
@@ -29,6 +34,7 @@
       "properties": {
         "primaryType": { "const": "unknown" },
         "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
         "body": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
         "triaged": { "$ref": "#/definitions/triaged" }
@@ -42,6 +48,7 @@
       "properties": {
         "primaryType": { "const": "scratchpad" },
         "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
         "body": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
         "triaged": { "$ref": "#/definitions/triaged" }
@@ -55,6 +62,7 @@
       "properties": {
         "primaryType": { "const": "art" },
         "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
         "image": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
@@ -69,6 +77,7 @@
       "properties": {
         "primaryType": { "const": "book" },
         "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
         "rels": { "$ref": "#/definitions/rels" },
         "triaged": { "$ref": "#/definitions/triaged" }
       },
@@ -81,6 +90,7 @@
       "properties": {
         "primaryType": { "const": "hypothesis" },
         "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
         "status": { "type": "string", "enum": ["ACTIVE", "SUPPORTED", "DISPROVEN"] },
         "context": { "type": "array", "items": { "type": "string" } },
         "experiment": { "type": "array", "items": { "type": "string" } },
@@ -97,6 +107,7 @@
       "properties": {
         "primaryType": { "const": "gestalt" },
         "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
         "triaged": { "$ref": "#/definitions/triaged" }
@@ -110,6 +121,7 @@
       "properties": {
         "primaryType": { "const": "context" },
         "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
         "triaged": { "$ref": "#/definitions/triaged" }
@@ -123,6 +135,7 @@
       "properties": {
         "primaryType": { "const": "ifThen" },
         "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
         "triaged": { "$ref": "#/definitions/triaged" }
@@ -136,6 +149,7 @@
       "properties": {
         "primaryType": { "const": "description" },
         "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
         "triaged": { "$ref": "#/definitions/triaged" }
@@ -149,6 +163,7 @@
       "properties": {
         "primaryType": { "const": "quote" },
         "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
         "triaged": { "$ref": "#/definitions/triaged" }
@@ -162,6 +177,7 @@
       "properties": {
         "primaryType": { "const": "source" },
         "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
         "triaged": { "$ref": "#/definitions/triaged" }
@@ -175,6 +191,7 @@
       "properties": {
         "primaryType": { "const": "entity" },
         "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
         "triaged": { "$ref": "#/definitions/triaged" }
