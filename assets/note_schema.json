@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "The System note file",
-  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: unknown, scratchpad, art, book, or hypothesis.",
+  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: unknown, scratchpad, art, book, hypothesis, gestalt, context, ifThen, description, quote, source, or entity.",
   "definitions": {
     "rels": {
       "description": "Relationships to other note files, e.g. [\"source\", \"other-note.json\"].",
@@ -89,6 +89,97 @@
         "rels": { "$ref": "#/definitions/rels" }
       },
       "required": ["primaryType", "title", "status"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Gestalt notes: a holistic impression or pattern worth naming.",
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "gestalt" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "rels": { "$ref": "#/definitions/rels" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Context notes: background or situational framing for other notes.",
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "context" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "rels": { "$ref": "#/definitions/rels" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title"],
+      "additionalProperties": false
+    },
+    {
+      "description": "If/then notes: a conditional rule or heuristic.",
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "ifThen" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "rels": { "$ref": "#/definitions/rels" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Description notes: a plain description of something observed.",
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "description" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "rels": { "$ref": "#/definitions/rels" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Quote notes: a verbatim quote worth keeping.",
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "quote" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "rels": { "$ref": "#/definitions/rels" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Source notes: a reference to where a note or idea came from.",
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "source" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "rels": { "$ref": "#/definitions/rels" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Entity notes: a person, place, organization, or other named thing.",
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "entity" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "rels": { "$ref": "#/definitions/rels" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title"],
       "additionalProperties": false
     }
   ]

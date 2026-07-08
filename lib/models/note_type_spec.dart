@@ -20,10 +20,17 @@ class NoteTypeSpec {
   final String label;
   final List<NoteFieldSpec> fields;
 
+  /// Whether the Lists screen for this type offers a "new note" action.
+  /// False for types whose schema has required fields beyond what [fields]
+  /// covers (e.g. hypothesis's `status`), since a generically-created note
+  /// wouldn't validate.
+  final bool creatable;
+
   const NoteTypeSpec({
     required this.primaryType,
     required this.label,
     required this.fields,
+    this.creatable = false,
   });
 }
 
@@ -69,6 +76,69 @@ const noteTypeSpecs = [
     label: 'Hypothesis',
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
+    ],
+  ),
+  NoteTypeSpec(
+    primaryType: 'gestalt',
+    label: 'Gestalt',
+    creatable: true,
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Title', required: true),
+      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
+    ],
+  ),
+  NoteTypeSpec(
+    primaryType: 'context',
+    label: 'Context',
+    creatable: true,
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Title', required: true),
+      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
+    ],
+  ),
+  NoteTypeSpec(
+    primaryType: 'ifThen',
+    label: 'If/Then',
+    creatable: true,
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Title', required: true),
+      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
+    ],
+  ),
+  NoteTypeSpec(
+    primaryType: 'description',
+    label: 'Description',
+    creatable: true,
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Title', required: true),
+      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
+    ],
+  ),
+  NoteTypeSpec(
+    primaryType: 'quote',
+    label: 'Quote',
+    creatable: true,
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Title', required: true),
+      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
+    ],
+  ),
+  NoteTypeSpec(
+    primaryType: 'source',
+    label: 'Source',
+    creatable: true,
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Title', required: true),
+      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
+    ],
+  ),
+  NoteTypeSpec(
+    primaryType: 'entity',
+    label: 'Entity',
+    creatable: true,
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Title', required: true),
+      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
     ],
   ),
 ];

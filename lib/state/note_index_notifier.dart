@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/note_file.dart';
 import '../models/note_index.dart';
+import '../models/note_type_spec.dart';
 import 'providers.dart';
 
 /// The app-wide cache of every note in the data folder. Built once per
@@ -69,6 +70,21 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
       'notes': <String>[],
       'findings': <String>[],
     };
+    final filename =
+        await ref.read(notesServiceProvider).createNote(folder, content, slugSource: title);
+    await update((index) => index.copyWith(entries: {...index.entries, filename: content}));
+    return filename;
+  }
+
+  /// Creates a new note of [spec]'s primaryType with [title] and an empty
+  /// string for every other field in [spec.fields] (e.g. `content`), for the
+  /// "new note" action on a type's Lists screen — see NoteTypeSpec.creatable.
+  Future<String> createFromSpec(NoteTypeSpec spec, {required String title}) async {
+    final folder = (await ref.read(dataFolderProvider.future))!;
+    final content = <String, dynamic>{'primaryType': spec.primaryType, 'title': title};
+    for (final field in spec.fields) {
+      if (field.key != 'title') content[field.key] = '';
+    }
     final filename =
         await ref.read(notesServiceProvider).createNote(folder, content, slugSource: title);
     await update((index) => index.copyWith(entries: {...index.entries, filename: content}));

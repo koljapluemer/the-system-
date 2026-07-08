@@ -7,9 +7,10 @@ import '../state/note_index_notifier.dart';
 import '../widgets/undo_snackbar.dart';
 import 'note_edit_screen.dart';
 
-/// Lists every note of [spec]'s primaryType, with edit/delete actions.
-/// Reacts automatically to the shared note index, including changes made
-/// from other screens (e.g. Triage or the edit form) — no manual reload.
+/// Lists every note of [spec]'s primaryType, with edit/delete actions, plus a
+/// "new note" action when [NoteTypeSpec.creatable] is set. Reacts
+/// automatically to the shared note index, including changes made from other
+/// screens (e.g. Triage or the edit form) — no manual reload.
 class NoteTypeListScreen extends ConsumerWidget {
   final NoteTypeSpec spec;
 
@@ -21,6 +22,43 @@ class NoteTypeListScreen extends ConsumerWidget {
       MaterialPageRoute(
         builder: (_) => NoteEditScreen(spec: spec, filename: summary.filename),
       ),
+    );
+  }
+
+  Future<void> _create(BuildContext context, WidgetRef ref) async {
+    final controller = TextEditingController();
+    final title = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('New ${spec.label}'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'Title', border: OutlineInputBorder()),
+          onSubmitted: (value) => Navigator.pop(dialogContext, value),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, controller.text),
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    final trimmed = title?.trim() ?? '';
+    if (trimmed.isEmpty || !context.mounted) return;
+
+    final filename =
+        await ref.read(noteIndexProvider.notifier).createFromSpec(spec, title: trimmed);
+    if (!context.mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => NoteEditScreen(spec: spec, filename: filename)),
     );
   }
 
@@ -43,6 +81,13 @@ class NoteTypeListScreen extends ConsumerWidget {
     final asyncIndex = ref.watch(noteIndexProvider);
     return Scaffold(
       appBar: AppBar(title: Text(spec.label)),
+      floatingActionButton: spec.creatable
+          ? FloatingActionButton(
+              tooltip: 'New ${spec.label}',
+              onPressed: () => _create(context, ref),
+              child: const Icon(Icons.add),
+            )
+          : null,
       body: asyncIndex.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Failed to load notes: $error')),
