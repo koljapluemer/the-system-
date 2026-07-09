@@ -11,4 +11,17 @@ extension NoteFileArrays on NoteFile {
     final value = this[key];
     return value is List ? value.whereType<String>().toList() : [];
   }
+
+  /// Defensive read of `rels`-shaped fields: a list of `[type, filename]`
+  /// pairs. Malformed entries (wrong length/type) are dropped rather than
+  /// thrown, matching [stringList]'s convention.
+  List<List<String>> stringPairList(String key) {
+    final value = this[key];
+    if (value is! List) return [];
+    return [
+      for (final entry in value)
+        if (entry is List && entry.length == 2 && entry.every((e) => e is String))
+          entry.cast<String>(),
+    ];
+  }
 }

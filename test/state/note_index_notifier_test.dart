@@ -104,4 +104,23 @@ void main() {
     final onDisk = jsonDecode(await File('${tempDir.path}/$filename').readAsString());
     expect(onDisk['status'], 'ACTIVE');
   });
+
+  test('createNoteWithFields adds a note with the given primaryType and fields', () async {
+    await container.read(noteIndexProvider.future);
+
+    final filename = await container.read(noteIndexProvider.notifier).createNoteWithFields(
+          primaryType: 'ifThen',
+          fields: {'title': 'My IfThen', 'content': 'some content', 'aliases': <String>['alt']},
+          slugSource: 'My IfThen',
+        );
+
+    final index = container.read(noteIndexProvider).value!;
+    expect(index.entries[filename]?['primaryType'], 'ifThen');
+    expect(index.entries[filename]?['title'], 'My IfThen');
+    expect(index.entries[filename]?['content'], 'some content');
+    expect(index.entries[filename]?['aliases'], ['alt']);
+
+    final onDisk = jsonDecode(await File('${tempDir.path}/$filename').readAsString());
+    expect(onDisk['content'], 'some content');
+  });
 }

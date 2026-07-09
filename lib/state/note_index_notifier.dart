@@ -91,6 +91,23 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
     return filename;
   }
 
+  /// Creates a new note of [primaryType] with an arbitrary [fields] map
+  /// (e.g. `{'title': ..., 'content': ..., 'aliases': [...]}`), for flows
+  /// that fill in more than just a title before the note first hits disk —
+  /// see the Import Obs Flow's create screens.
+  Future<String> createNoteWithFields({
+    required String primaryType,
+    required Map<String, dynamic> fields,
+    required String slugSource,
+  }) async {
+    final folder = (await ref.read(dataFolderProvider.future))!;
+    final content = <String, dynamic>{'primaryType': primaryType, ...fields};
+    final filename =
+        await ref.read(notesServiceProvider).createNote(folder, content, slugSource: slugSource);
+    await update((index) => index.copyWith(entries: {...index.entries, filename: content}));
+    return filename;
+  }
+
   /// Forces a fresh full-folder rescan, e.g. as a manual escape hatch if the
   /// in-memory index is ever suspected to have drifted from disk.
   Future<void> refresh() async {
