@@ -26,11 +26,18 @@ class NoteTypeSpec {
   /// wouldn't validate.
   final bool creatable;
 
+  /// Whether this type uses [NoteDetailScreen] (inline pencil-edit fields +
+  /// relationship sections) instead of the plain [NoteEditScreen] form, for
+  /// both the Lists screen's edit action and its post-create landing screen.
+  /// Opt in per type as their richer editing UI gets built out.
+  final bool richEdit;
+
   const NoteTypeSpec({
     required this.primaryType,
     required this.label,
     required this.fields,
     this.creatable = false,
+    this.richEdit = false,
   });
 }
 
@@ -100,6 +107,7 @@ const noteTypeSpecs = [
     primaryType: 'ifThen',
     label: 'If/Then',
     creatable: true,
+    richEdit: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),

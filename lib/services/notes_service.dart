@@ -93,14 +93,14 @@ class NotesService {
   }
 
   /// Creates a new note file with an arbitrary [content] map. The filename is
-  /// a slug of [slugSource] plus a random 6-hex-digit suffix, so titles can
-  /// repeat without colliding on disk.
+  /// a slug of [slugSource] plus a random 6-character alphanumeric suffix, so
+  /// titles can repeat without colliding on disk.
   Future<String> createNote(
     String folder,
     NoteFile content, {
     required String slugSource,
   }) async {
-    final filename = '${_slugify(slugSource)}-${_randomHex6()}.json';
+    final filename = '${_slugify(slugSource)}-${_randomSuffix6()}.json';
     await writeJsonFile(folder, filename, content);
     return filename;
   }
@@ -118,16 +118,29 @@ class NotesService {
     );
   }
 
+  /// Most filesystems cap a filename at 255 bytes; long titles (e.g. a quote
+  /// note whose title is a whole paragraph) would otherwise blow past that
+  /// once slugified, so this is capped well under the limit even after the
+  /// `-xxxxxx.json` suffix is appended.
+  static const _maxSlugLength = 80;
+
   String _slugify(String title) {
-    final slug = title
+    var slug = title
         .toLowerCase()
         .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
         .replaceAll(RegExp(r'^-+|-+$'), '');
+    if (slug.length > _maxSlugLength) {
+      slug = slug.substring(0, _maxSlugLength).replaceAll(RegExp(r'-+$'), '');
+    }
     return slug.isEmpty ? 'note' : slug;
   }
 
-  String _randomHex6() {
-    final value = Random().nextInt(0x1000000);
-    return value.toRadixString(16).padLeft(6, '0');
+  static const _suffixAlphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+
+  /// A wider alphabet than a hex suffix (36 vs. 16 options per character)
+  /// for a much larger collision space at the same length.
+  String _randomSuffix6() {
+    final random = Random();
+    return List.generate(6, (_) => _suffixAlphabet[random.nextInt(_suffixAlphabet.length)]).join();
   }
 }

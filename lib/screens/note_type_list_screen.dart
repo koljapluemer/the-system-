@@ -5,7 +5,7 @@ import '../models/note_summary.dart';
 import '../models/note_type_spec.dart';
 import '../state/note_index_notifier.dart';
 import '../widgets/undo_snackbar.dart';
-import 'note_edit_screen.dart';
+import 'note_editor_navigation.dart';
 
 /// Lists every note of [spec]'s primaryType, with edit/delete actions, plus a
 /// "new note" action when [NoteTypeSpec.creatable] is set. Reacts
@@ -17,12 +17,7 @@ class NoteTypeListScreen extends ConsumerWidget {
   const NoteTypeListScreen({super.key, required this.spec});
 
   void _edit(BuildContext context, NoteSummary summary) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => NoteEditScreen(spec: spec, filename: summary.filename),
-      ),
-    );
+    pushNoteEditor(context, spec: spec, filename: summary.filename);
   }
 
   Future<void> _create(BuildContext context, WidgetRef ref) async {
@@ -56,10 +51,7 @@ class NoteTypeListScreen extends ConsumerWidget {
     final filename =
         await ref.read(noteIndexProvider.notifier).createFromSpec(spec, title: trimmed);
     if (!context.mounted) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => NoteEditScreen(spec: spec, filename: filename)),
-    );
+    pushNoteEditor(context, spec: spec, filename: filename);
   }
 
   Future<void> _delete(BuildContext context, WidgetRef ref, NoteSummary summary) async {

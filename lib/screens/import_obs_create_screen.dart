@@ -4,12 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/note_type_spec.dart';
 import '../state/note_index_notifier.dart';
 import '../widgets/array_list_section.dart';
-import 'import_obs_detail_screen.dart';
+import 'note_detail_screen.dart';
 
 /// First step of an Import Obs Flow "Add `<Type>`" form: standard title /
 /// content / aliases affordances, kept local until Confirm so aborting
 /// leaves no orphan note on disk. Confirming creates the note and hands off
-/// to [ImportObsDetailScreen].
+/// to [NoteDetailScreen].
 class ImportObsCreateScreen extends ConsumerStatefulWidget {
   final NoteTypeSpec spec;
 
@@ -63,7 +63,7 @@ class _ImportObsCreateScreenState extends ConsumerState<ImportObsCreateScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) => ImportObsDetailScreen(spec: widget.spec, filename: filename),
+        builder: (_) => NoteDetailScreen(spec: widget.spec, filename: filename),
       ),
     );
   }

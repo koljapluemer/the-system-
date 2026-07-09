@@ -105,7 +105,7 @@ void main() {
         {'primaryType': 'hypothesis', 'title': 'Something else', 'status': 'ACTIVE'},
         slugSource: 'Buy Milk!! 2%',
       );
-      expect(filename, matches(RegExp(r'^buy-milk-2-[0-9a-f]{6}\.json$')));
+      expect(filename, matches(RegExp(r'^buy-milk-2-[0-9a-z]{6}\.json$')));
       final note = await service.readJsonFile(tempDir.path, filename);
       expect(note['primaryType'], 'hypothesis');
       expect(note['title'], 'Something else');
@@ -117,6 +117,17 @@ void main() {
       final b = await service.createNote(tempDir.path, {'primaryType': 'hypothesis'},
           slugSource: 'Same');
       expect(a, isNot(b));
+    });
+
+    test('truncates very long slugSource so the filename stays within OS limits', () async {
+      final longTitle = List.filled(40, 'word').join(' '); // 199 chars
+      final filename =
+          await service.createNote(tempDir.path, {'primaryType': 'quote'}, slugSource: longTitle);
+      expect(filename.length, lessThan(100));
+      expect(filename, matches(RegExp(r'^[a-z0-9-]+-[0-9a-z]{6}\.json$')));
+      expect(filename.contains('--'), isFalse);
+      final note = await service.readJsonFile(tempDir.path, filename);
+      expect(note['primaryType'], 'quote');
     });
   });
 
@@ -133,14 +144,14 @@ void main() {
       expect(note['body'], 'some body');
     });
 
-    test('slugifies the title and appends a 6-hex-digit suffix', () async {
+    test('slugifies the title and appends a 6-character alphanumeric suffix', () async {
       final filename = await service.createQuickNote(tempDir.path, title: 'Buy Milk!! 2%');
-      expect(filename, matches(RegExp(r'^buy-milk-2-[0-9a-f]{6}\.json$')));
+      expect(filename, matches(RegExp(r'^buy-milk-2-[0-9a-z]{6}\.json$')));
     });
 
     test('falls back to "note" when the title has no alphanumeric characters', () async {
       final filename = await service.createQuickNote(tempDir.path, title: '!!!');
-      expect(filename, matches(RegExp(r'^note-[0-9a-f]{6}\.json$')));
+      expect(filename, matches(RegExp(r'^note-[0-9a-z]{6}\.json$')));
     });
 
     test('defaults body to empty string when omitted', () async {
