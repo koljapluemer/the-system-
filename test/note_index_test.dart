@@ -44,18 +44,18 @@ void main() {
 
     test('carries filename and title through', () {
       final index = NoteIndex(entries: {
-        'u.json': {'primaryType': 'unknown', 'title': 'Some Title'},
+        's.json': {'primaryType': 'scratchpad', 'title': 'Some Title'},
       });
-      final summary = index.summariesOfType('unknown').first;
-      expect(summary.filename, 'u.json');
+      final summary = index.summariesOfType('scratchpad').first;
+      expect(summary.filename, 's.json');
       expect(summary.title, 'Some Title');
     });
 
     test('defaults title to empty string when missing', () {
       final index = NoteIndex(entries: {
-        'notitle.json': {'primaryType': 'unknown'},
+        'notitle.json': {'primaryType': 'scratchpad'},
       });
-      expect(index.summariesOfType('unknown').first.title, '');
+      expect(index.summariesOfType('scratchpad').first.title, '');
     });
   });
 
@@ -91,13 +91,6 @@ void main() {
   });
 
   group('floatingPool', () {
-    test('includes notes with primaryType "unknown"', () {
-      final index = NoteIndex(entries: {
-        'u.json': {'primaryType': 'unknown', 'title': 'U', 'body': 'body'},
-      });
-      expect(index.floatingPool().map((n) => n.filename), contains('u.json'));
-    });
-
     test('includes scratchpad notes only once triaged "true"', () {
       final index = NoteIndex(entries: {
         's1.json': {'primaryType': 'scratchpad', 'triaged': 'true', 'title': 'S1'},
@@ -117,7 +110,12 @@ void main() {
 
     test('carries title and body through', () {
       final index = NoteIndex(entries: {
-        'u2.json': {'primaryType': 'unknown', 'title': 'Title', 'body': 'Body text'},
+        's2.json': {
+          'primaryType': 'scratchpad',
+          'triaged': 'true',
+          'title': 'Title',
+          'body': 'Body text',
+        },
       });
       final entry = index.floatingPool().first;
       expect(entry.title, 'Title');

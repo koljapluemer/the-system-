@@ -53,17 +53,17 @@ void main() {
     await container.read(noteIndexProvider.future);
     await container
         .read(noteIndexProvider.notifier)
-        .write('new.json', {'primaryType': 'unknown', 'title': 'New'});
+        .write('new.json', {'primaryType': 'scratchpad', 'title': 'New'});
 
     final index = container.read(noteIndexProvider).value!;
-    expect(index.entries['new.json'], {'primaryType': 'unknown', 'title': 'New'});
+    expect(index.entries['new.json'], {'primaryType': 'scratchpad', 'title': 'New'});
 
     final onDisk = jsonDecode(await File('${tempDir.path}/new.json').readAsString());
     expect(onDisk['title'], 'New');
   });
 
   test('delete removes both the in-memory entry and the file on disk', () async {
-    await writeFixture('gone.json', {'primaryType': 'unknown', 'title': 'Gone'});
+    await writeFixture('gone.json', {'primaryType': 'scratchpad', 'title': 'Gone'});
     await container.read(noteIndexProvider.future);
 
     await container.read(noteIndexProvider.notifier).delete('gone.json');
@@ -73,7 +73,7 @@ void main() {
     expect(await File('${tempDir.path}/gone.json').exists(), isFalse);
   });
 
-  test('createQuickNote adds an unknown note to both entries and disk', () async {
+  test('createQuickNote adds a scratchpad note to both entries and disk', () async {
     await container.read(noteIndexProvider.future);
 
     final filename = await container
@@ -81,7 +81,7 @@ void main() {
         .createQuickNote(title: 'Quick', body: 'some body');
 
     final index = container.read(noteIndexProvider).value!;
-    expect(index.entries[filename]?['primaryType'], 'unknown');
+    expect(index.entries[filename]?['primaryType'], 'scratchpad');
     expect(index.entries[filename]?['title'], 'Quick');
     expect(await File('${tempDir.path}/$filename').exists(), isTrue);
   });

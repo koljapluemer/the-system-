@@ -8,14 +8,6 @@ void main() {
   const service = JsonSchemaService();
 
   group('findInvalid', () {
-    test('accepts a well-formed unknown note', () async {
-      final index = NoteIndex(entries: {
-        'a.json': {'primaryType': 'unknown', 'title': 'A'},
-      });
-      final result = await service.findInvalid(index);
-      expect(result, isNot(contains('a.json')));
-    });
-
     test('accepts a well-formed scratchpad note with rels and triaged', () async {
       final index = NoteIndex(entries: {
         'b.json': {
@@ -147,8 +139,9 @@ void main() {
     test('flags unexpected extra fields', () async {
       final index = NoteIndex(entries: {
         'f.json': {
-          'primaryType': 'unknown',
+          'primaryType': 'scratchpad',
           'title': 'F',
+          'body': 'body text',
           'unexpected': 'field',
         },
       });

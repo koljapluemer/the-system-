@@ -46,12 +46,11 @@ class NoteIndex {
             NoteSummary(filename: e.key, title: e.value['title'] as String? ?? ''),
       ];
 
-  /// Notes eligible for the floating-notes canvas: `primaryType == "unknown"`,
-  /// or `primaryType == "scratchpad"` that has already been triaged.
+  /// Notes eligible for the floating-notes canvas: `primaryType ==
+  /// "scratchpad"` notes that have already been triaged.
   List<FloatingNoteEntry> floatingPool() => [
         for (final e in entries.entries)
-          if (e.value['primaryType'] == 'unknown' ||
-              (e.value['primaryType'] == 'scratchpad' && e.value['triaged'] == 'true'))
+          if (e.value['primaryType'] == 'scratchpad' && e.value['triaged'] == 'true')
             FloatingNoteEntry(
               filename: e.key,
               title: e.value['title'] as String? ?? '',

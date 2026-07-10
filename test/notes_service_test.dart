@@ -59,7 +59,7 @@ void main() {
     test('finds every file across multiple concurrency batches, none dropped', () async {
       const total = 90;
       for (var i = 0; i < total; i++) {
-        await writeFixture('n$i.json', {'primaryType': 'unknown', 'title': 'N$i'});
+        await writeFixture('n$i.json', {'primaryType': 'scratchpad', 'title': 'N$i'});
       }
       // concurrency (32) doesn't evenly divide total, exercising a partial final batch too.
       final result = await service.scanNotes(tempDir.path, concurrency: 32).toList();
@@ -132,14 +132,14 @@ void main() {
   });
 
   group('createQuickNote', () {
-    test('writes primaryType "unknown" with title and body', () async {
+    test('writes primaryType "scratchpad" with title and body', () async {
       final filename = await service.createQuickNote(
         tempDir.path,
         title: 'My Title',
         body: 'some body',
       );
       final note = await service.readJsonFile(tempDir.path, filename);
-      expect(note['primaryType'], 'unknown');
+      expect(note['primaryType'], 'scratchpad');
       expect(note['title'], 'My Title');
       expect(note['body'], 'some body');
     });

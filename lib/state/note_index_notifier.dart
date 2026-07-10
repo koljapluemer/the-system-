@@ -44,14 +44,14 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
     await update((index) => index.copyWith(entries: {...index.entries}..remove(filename)));
   }
 
-  /// Creates a new `primaryType: "unknown"` note from the Quick Add flow.
+  /// Creates a new `primaryType: "scratchpad"` note from the Quick Add flow.
   Future<String> createQuickNote({required String title, String body = ''}) async {
     final folder = (await ref.read(dataFolderProvider.future))!;
     final filename =
         await ref.read(notesServiceProvider).createQuickNote(folder, title: title, body: body);
     await update((index) => index.copyWith(entries: {
           ...index.entries,
-          filename: {'primaryType': 'unknown', 'title': title, 'body': body},
+          filename: {'primaryType': 'scratchpad', 'title': title, 'body': body},
         }));
     return filename;
   }

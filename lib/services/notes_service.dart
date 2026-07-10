@@ -105,7 +105,7 @@ class NotesService {
     return filename;
   }
 
-  /// Creates a new `primaryType: "unknown"` note from the Quick Add flow.
+  /// Creates a new `primaryType: "scratchpad"` note from the Quick Add flow.
   Future<String> createQuickNote(
     String folder, {
     required String title,
@@ -113,7 +113,7 @@ class NotesService {
   }) {
     return createNote(
       folder,
-      {'primaryType': 'unknown', 'title': title, 'body': body},
+      {'primaryType': 'scratchpad', 'title': title, 'body': body},
       slugSource: title,
     );
   }

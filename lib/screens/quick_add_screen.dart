@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/note_index_notifier.dart';
 
 /// Fast-path capture: title + optional body, written straight to disk as a
-/// `primaryType: "unknown"` note so it shows up wherever unknown notes do
-/// (e.g. the floating-notes canvas) without going through triage.
+/// `primaryType: "scratchpad"` note, entering the Scratchpad Triage queue
+/// like any other scratchpad note.
 class QuickAddScreen extends ConsumerStatefulWidget {
   const QuickAddScreen({super.key});
 

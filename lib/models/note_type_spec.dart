@@ -52,14 +52,6 @@ class NoteTypeSpec {
 
 const noteTypeSpecs = [
   NoteTypeSpec(
-    primaryType: 'unknown',
-    label: 'Unknown',
-    fields: [
-      NoteFieldSpec(key: 'title', label: 'Title', required: true),
-      NoteFieldSpec(key: 'body', label: 'Body', multiline: true),
-    ],
-  ),
-  NoteTypeSpec(
     primaryType: 'scratchpad',
     label: 'Scratchpad',
     fields: [

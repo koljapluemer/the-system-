@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "The System note file",
-  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: unknown, scratchpad, art, hypothesis, gestalt, context, ifThen, description, quote, source, entity, or story.",
+  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: scratchpad, art, hypothesis, gestalt, context, ifThen, description, quote, source, entity, or story.",
   "definitions": {
     "rels": {
       "description": "Relationships to other note files, e.g. [\"source\", \"other-note.json\"].",
@@ -28,20 +28,6 @@
     }
   },
   "oneOf": [
-    {
-      "description": "Quick Add notes and anything else not yet sorted into a specific flow.",
-      "type": "object",
-      "properties": {
-        "primaryType": { "const": "unknown" },
-        "title": { "type": "string" },
-        "aliases": { "$ref": "#/definitions/aliases" },
-        "body": { "type": "string" },
-        "rels": { "$ref": "#/definitions/rels" },
-        "triaged": { "$ref": "#/definitions/triaged" }
-      },
-      "required": ["primaryType", "title"],
-      "additionalProperties": false
-    },
     {
       "description": "Scratchpad Triage notes.",
       "type": "object",
@@ -89,7 +75,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Gestalt notes: a holistic impression or pattern worth naming.",
+      "description": "Gestalt notes: a pattern, approximated by descriptions.",
       "type": "object",
       "properties": {
         "primaryType": { "const": "gestalt" },
@@ -103,7 +89,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Context notes: background or situational framing for other notes.",
+      "description": "Context notes: gives context to if-then note.",
       "type": "object",
       "properties": {
         "primaryType": { "const": "context" },
@@ -117,7 +103,7 @@
       "additionalProperties": false
     },
     {
-      "description": "If/then notes: a conditional rule or heuristic.",
+      "description": "If/then notes: a type of take.",
       "type": "object",
       "properties": {
         "primaryType": { "const": "ifThen" },
@@ -131,7 +117,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Description notes: a plain description of something observed.",
+      "description": "Description notes: describes a shape.",
       "type": "object",
       "properties": {
         "primaryType": { "const": "description" },
