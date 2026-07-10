@@ -32,12 +32,20 @@ void main() {
       expect(result, isNot(contains('b.json')));
     });
 
-    test('accepts a well-formed book note', () async {
+    test('accepts a well-formed source note with a valid secondaryType', () async {
       final index = NoteIndex(entries: {
-        'bk.json': {'primaryType': 'book', 'title': 'Some Book'},
+        'bk.json': {'primaryType': 'source', 'title': 'Some Book', 'secondaryType': 'book'},
       });
       final result = await service.findInvalid(index);
       expect(result, isNot(contains('bk.json')));
+    });
+
+    test('flags a source note with an invalid secondaryType value', () async {
+      final index = NoteIndex(entries: {
+        'bk.json': {'primaryType': 'source', 'title': 'Some Book', 'secondaryType': 'ebook'},
+      });
+      final result = await service.findInvalid(index);
+      expect(result, contains('bk.json'));
     });
 
     test('accepts a well-formed art note', () async {

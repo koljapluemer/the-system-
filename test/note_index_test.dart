@@ -37,7 +37,7 @@ void main() {
 
     test('excludes notes with a different primaryType', () {
       final index = NoteIndex(entries: {
-        'd.json': {'primaryType': 'book', 'title': 'D'},
+        'd.json': {'primaryType': 'entity', 'title': 'D'},
       });
       expect(index.summariesOfType('scratchpad'), isEmpty);
     });

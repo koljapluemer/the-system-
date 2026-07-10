@@ -17,7 +17,6 @@ class ImportObsTypeScreen extends StatelessWidget {
     'description',
     'quote',
     'source',
-    'book',
     'entity',
     'story',
   ];

@@ -34,12 +34,19 @@ class NoteTypeSpec {
   /// in per type as relationship conventions get established.
   final List<String> quickRelationshipTypes;
 
+  /// Allowed values for this primaryType's optional `secondaryType` field,
+  /// mirrored in this primaryType's `enum` in `note_schema.json`. Empty by
+  /// default — this primaryType has no secondaryType concept, and
+  /// [NoteDetailScreen] won't render a secondaryType picker for it.
+  final List<String> secondaryTypes;
+
   const NoteTypeSpec({
     required this.primaryType,
     required this.label,
     required this.fields,
     this.creatable = false,
     this.quickRelationshipTypes = const [],
+    this.secondaryTypes = const [],
   });
 }
 
@@ -67,13 +74,6 @@ const noteTypeSpecs = [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true, required: true),
       NoteFieldSpec(key: 'image', label: 'Image (filename)'),
-    ],
-  ),
-  NoteTypeSpec(
-    primaryType: 'book',
-    label: 'Book',
-    fields: [
-      NoteFieldSpec(key: 'title', label: 'Title', required: true),
     ],
   ),
   // Only 'title' is exposed here: status and the context/experiment/notes/
@@ -137,6 +137,7 @@ const noteTypeSpecs = [
     primaryType: 'source',
     label: 'Source',
     creatable: true,
+    secondaryTypes: ['book', 'article', 'blog', 'video', 'software', 'misc'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),

@@ -7,7 +7,6 @@ Clicking it should first go to a `primaryType` selection screen, with options:
 - description
 - quote
 - source
-- book
 - entity
 - story
 
@@ -41,8 +40,6 @@ button the user must specify which of those types they want.
 ## Add Quote
 
 ## Add Source
-
-## Add Book
 
 ## Add Entity
 

@@ -23,6 +23,12 @@ Internal checklist for adding a new note `primaryType`. Brief — for contributo
   entirely (see how `hypotheses_screen.dart` hardcodes its own navigation) and any fields
   it manages itself should generally be left out of `NoteTypeSpec.fields`, since that list
   is what the generic form/detail screen merges on save.
+- **`secondaryTypes`**: does this type need a constrained sub-type (e.g. `source`'s
+  `secondaryType` of `book`/`article`/`blog`/etc.)? If so, add the allowed values to both
+  the schema (an `enum` on that type's `secondaryType` property in `note_schema.json`) and
+  `NoteTypeSpec.secondaryTypes` here — `NoteDetailScreen` renders a dropdown automatically
+  whenever `secondaryTypes` is non-empty. Leave it `[]` (the default) if this type has no
+  such concept.
 - **`quickRelationshipTypes`**: does this type have a "commonly added" relationship? If
   so, add/reuse an entry in `lib/models/relationship_type_spec.dart`'s
   `relationshipTypeSpecs` (a new `RelationshipTypeSpec` if the relType or its
