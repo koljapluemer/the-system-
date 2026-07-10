@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/note_file.dart';
 import '../models/note_index.dart';
 import '../models/note_type_spec.dart';
+import '../models/relationship_type_spec.dart';
 import '../state/note_index_notifier.dart';
 import '../widgets/array_list_section.dart';
 import '../widgets/inline_editable_text.dart';
@@ -11,19 +12,14 @@ import '../widgets/relationship_dialog.dart';
 import '../widgets/undo_snackbar.dart';
 import 'note_editor_navigation.dart';
 
-/// primaryTypes eligible as "Evidence" for a note, per docs/obs-import.md —
-/// deliberately excludes `source`, which has its own dedicated relationship.
-const _evidencePrimaryTypes = ['gestalt', 'context', 'ifThen', 'description', 'quote', 'story'];
-
-/// Richer view/edit UI for a note, used in place of [NoteEditScreen] for
-/// primaryTypes with [NoteTypeSpec.richEdit] set (currently just `ifThen`):
-/// title/content are shown read-only with a pencil button to inline-edit
-/// each, aliases likewise behind a pencil toggle, plus "Source
-/// Relationships"/"Evidence" sections for attaching `[relType, filename]`
-/// rels via a smart-search modal. Originated as the Import Obs Flow's
-/// post-create screen; also used as the Lists screen's edit destination for
-/// richEdit types, so this is the general note-editing UI, not
-/// flow-specific.
+/// The universal note view/edit UI: title/content are shown read-only with a
+/// pencil button to inline-edit each, aliases likewise behind a pencil
+/// toggle, plus a unified relationship list (any `[relType, filename]` rel,
+/// labeled by type) with "quick add" buttons per [NoteTypeSpec
+/// .quickRelationshipTypes] and a catch-all "Add Other" picker for every
+/// other registered relationship type. Reached from every type's Lists
+/// screen via [pushNoteEditor], and as the Import Obs Flow's post-create
+/// screen.
 class NoteDetailScreen extends ConsumerStatefulWidget {
   final NoteTypeSpec spec;
   final String filename;
@@ -121,27 +117,81 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
     pushNoteEditor(context, spec: relatedSpec, filename: relatedFilename);
   }
 
-  /// One relationship type's list + "Add" button, e.g. "Source Relationships"
-  /// or "Evidence" — the two are identical apart from [relType], the section
-  /// heading/button label, and which primaryTypes are searchable/creatable.
-  Widget _relationshipSection({
-    required BuildContext context,
-    required NoteFile note,
-    required NoteIndex index,
-    required String relType,
-    required String sectionLabel,
-    required String buttonLabel,
-    required List<String> allowedPrimaryTypes,
-  }) {
-    final rels = note.stringPairList('rels').where((rel) => rel[0] == relType).toList();
+  /// Falls back to the raw relType key if it's not in the registry (e.g. a
+  /// hand-edited file, or a relType retired from the registry) — degrades
+  /// gracefully rather than crashing, matching [NoteFile]'s defensive-read
+  /// conventions.
+  String _relationshipLabel(String relType) {
+    for (final spec in relationshipTypeSpecs) {
+      if (spec.relType == relType) return spec.label;
+    }
+    return relType;
+  }
+
+  /// Looks up a quick-button's registry entry. Assumes
+  /// [NoteTypeSpec.quickRelationshipTypes] keys always exist in
+  /// [relationshipTypeSpecs] — both const lists are hand-maintained together,
+  /// so this is an invariant, not a runtime concern.
+  RelationshipTypeSpec _quickSpec(String relType) =>
+      relationshipTypeSpecs.firstWhere((s) => s.relType == relType);
+
+  void _showAddOtherPicker(BuildContext context) {
+    final offered = widget.spec.quickRelationshipTypes.toSet();
+    final other = [for (final s in relationshipTypeSpecs) if (!offered.contains(s.relType)) s];
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Add Relationship'),
+        content: SizedBox(
+          width: 360,
+          child: other.isEmpty
+              ? const Text('No other relationship types available.')
+              : ListView(
+                  shrinkWrap: true,
+                  children: [
+                    for (final s in other)
+                      ListTile(
+                        title: Text(s.label),
+                        onTap: () {
+                          Navigator.pop(dialogContext);
+                          showRelationshipDialog(
+                            context,
+                            ref,
+                            filename: widget.filename,
+                            relType: s.relType,
+                            allowedPrimaryTypes: s.allowedPrimaryTypes,
+                            dialogTitle: s.buttonLabel,
+                          );
+                        },
+                      ),
+                  ],
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The unified relationship list: every `[relType, filename]` rel
+  /// regardless of type, in `rels` array order, each row labeled by its
+  /// relationship type. Followed by "quick add" buttons for
+  /// [NoteTypeSpec.quickRelationshipTypes] and a catch-all "Add Other".
+  Widget _relationshipsSection(BuildContext context, NoteFile note, NoteIndex index) {
+    final rels = note.stringPairList('rels');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(sectionLabel, style: Theme.of(context).textTheme.titleMedium),
+        Text('Relationships', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 4),
         if (rels.isEmpty) const Text('—'),
         for (final rel in rels)
           _RelationshipRow(
+            relTypeLabel: _relationshipLabel(rel[0]),
             title: index.entries[rel[1]]?['title'] as String? ?? rel[1],
             targetExists: index.entries.containsKey(rel[1]),
             onSaveTitle: (newTitle) => _renameRelated(rel[1], newTitle),
@@ -162,17 +212,29 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                 : null,
           ),
         const SizedBox(height: 8),
-        OutlinedButton.icon(
-          icon: const Icon(Icons.add_link),
-          label: Text(buttonLabel),
-          onPressed: () => showRelationshipDialog(
-            context,
-            ref,
-            filename: widget.filename,
-            relType: relType,
-            allowedPrimaryTypes: allowedPrimaryTypes,
-            dialogTitle: buttonLabel,
-          ),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final relType in widget.spec.quickRelationshipTypes)
+              OutlinedButton.icon(
+                icon: const Icon(Icons.add_link),
+                label: Text(_quickSpec(relType).buttonLabel),
+                onPressed: () => showRelationshipDialog(
+                  context,
+                  ref,
+                  filename: widget.filename,
+                  relType: relType,
+                  allowedPrimaryTypes: _quickSpec(relType).allowedPrimaryTypes,
+                  dialogTitle: _quickSpec(relType).buttonLabel,
+                ),
+              ),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.add_link),
+              label: const Text('Add Other'),
+              onPressed: () => _showAddOtherPicker(context),
+            ),
+          ],
         ),
       ],
     );
@@ -242,25 +304,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _relationshipSection(
-                    context: context,
-                    note: note,
-                    index: index,
-                    relType: 'source',
-                    sectionLabel: 'Source Relationships',
-                    buttonLabel: 'Add Source Relationship',
-                    allowedPrimaryTypes: const ['source'],
-                  ),
-                  const SizedBox(height: 16),
-                  _relationshipSection(
-                    context: context,
-                    note: note,
-                    index: index,
-                    relType: 'evidence',
-                    sectionLabel: 'Evidence',
-                    buttonLabel: 'Add Evidence',
-                    allowedPrimaryTypes: _evidencePrimaryTypes,
-                  ),
+                  _relationshipsSection(context, note, index),
                 ],
               ),
             ),
@@ -277,6 +321,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
 /// when the related note no longer exists (a dangling rel) — detach stays
 /// enabled so a dangling rel can still be cleaned up.
 class _RelationshipRow extends StatefulWidget {
+  final String relTypeLabel;
   final String title;
   final bool targetExists;
   final ValueChanged<String> onSaveTitle;
@@ -285,6 +330,7 @@ class _RelationshipRow extends StatefulWidget {
   final VoidCallback? onDelete;
 
   const _RelationshipRow({
+    required this.relTypeLabel,
     required this.title,
     required this.targetExists,
     required this.onSaveTitle,
@@ -350,6 +396,7 @@ class _RelationshipRowState extends State<_RelationshipRow> {
       dense: true,
       contentPadding: EdgeInsets.zero,
       title: Text(widget.title),
+      subtitle: Text(widget.relTypeLabel),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

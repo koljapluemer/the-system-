@@ -1,3 +1,5 @@
+import 'relationship_type_spec.dart';
+
 /// Describes one note primaryType's core editable fields, driving the Lists
 /// overview, per-type list, and generic edit form. Keep in sync with
 /// assets/note_schema.json.
@@ -26,18 +28,18 @@ class NoteTypeSpec {
   /// wouldn't validate.
   final bool creatable;
 
-  /// Whether this type uses [NoteDetailScreen] (inline pencil-edit fields +
-  /// relationship sections) instead of the plain [NoteEditScreen] form, for
-  /// both the Lists screen's edit action and its post-create landing screen.
-  /// Opt in per type as their richer editing UI gets built out.
-  final bool richEdit;
+  /// relType keys (must exist in [relationshipTypeSpecs]) rendered as
+  /// dedicated "quick add" buttons on this type's [NoteDetailScreen],
+  /// alongside the always-present "Add Other" button. Empty by default — opt
+  /// in per type as relationship conventions get established.
+  final List<String> quickRelationshipTypes;
 
   const NoteTypeSpec({
     required this.primaryType,
     required this.label,
     required this.fields,
     this.creatable = false,
-    this.richEdit = false,
+    this.quickRelationshipTypes = const [],
   });
 }
 
@@ -107,7 +109,7 @@ const noteTypeSpecs = [
     primaryType: 'ifThen',
     label: 'If/Then',
     creatable: true,
-    richEdit: true,
+    quickRelationshipTypes: ['source', 'evidence'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
