@@ -105,19 +105,6 @@ class NotesService {
     return filename;
   }
 
-  /// Creates a new `primaryType: "scratchpad"` note from the Quick Add flow.
-  Future<String> createQuickNote(
-    String folder, {
-    required String title,
-    String body = '',
-  }) {
-    return createNote(
-      folder,
-      {'primaryType': 'scratchpad', 'title': title, 'body': body},
-      slugSource: title,
-    );
-  }
-
   /// Most filesystems cap a filename at 255 bytes; long titles (e.g. a quote
   /// note whose title is a whole paragraph) would otherwise blow past that
   /// once slugified, so this is capped well under the limit even after the

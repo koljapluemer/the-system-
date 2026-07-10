@@ -44,18 +44,6 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
     await update((index) => index.copyWith(entries: {...index.entries}..remove(filename)));
   }
 
-  /// Creates a new `primaryType: "scratchpad"` note from the Quick Add flow.
-  Future<String> createQuickNote({required String title, String body = ''}) async {
-    final folder = (await ref.read(dataFolderProvider.future))!;
-    final filename =
-        await ref.read(notesServiceProvider).createQuickNote(folder, title: title, body: body);
-    await update((index) => index.copyWith(entries: {
-          ...index.entries,
-          filename: {'primaryType': 'scratchpad', 'title': title, 'body': body},
-        }));
-    return filename;
-  }
-
   /// Creates a new `primaryType: "hypothesis"` note, ACTIVE with empty
   /// context/experiment/notes/findings sections, from the inline add field on
   /// the Hypotheses screen.
@@ -87,23 +75,6 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
     }
     final filename =
         await ref.read(notesServiceProvider).createNote(folder, content, slugSource: title);
-    await update((index) => index.copyWith(entries: {...index.entries, filename: content}));
-    return filename;
-  }
-
-  /// Creates a new note of [primaryType] with an arbitrary [fields] map
-  /// (e.g. `{'title': ..., 'content': ..., 'aliases': [...]}`), for flows
-  /// that fill in more than just a title before the note first hits disk —
-  /// see the Import Obs Flow's create screens.
-  Future<String> createNoteWithFields({
-    required String primaryType,
-    required Map<String, dynamic> fields,
-    required String slugSource,
-  }) async {
-    final folder = (await ref.read(dataFolderProvider.future))!;
-    final content = <String, dynamic>{'primaryType': primaryType, ...fields};
-    final filename =
-        await ref.read(notesServiceProvider).createNote(folder, content, slugSource: slugSource);
     await update((index) => index.copyWith(entries: {...index.entries, filename: content}));
     return filename;
   }

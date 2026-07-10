@@ -1,0 +1,24 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:the_system/state/add_type_usage_notifier.dart';
+
+void main() {
+  test('starts empty', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(container.read(addTypeUsageProvider), isEmpty);
+  });
+
+  test('recordAdd increments the count for a primaryType', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final notifier = container.read(addTypeUsageProvider.notifier);
+    notifier.recordAdd('scratchpad');
+    notifier.recordAdd('scratchpad');
+    notifier.recordAdd('ifThen');
+
+    expect(container.read(addTypeUsageProvider), {'scratchpad': 2, 'ifThen': 1});
+  });
+}

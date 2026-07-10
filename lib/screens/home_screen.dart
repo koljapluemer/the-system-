@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'add_screen.dart';
 import 'art_triage_screen.dart';
 import 'floating_notes_screen.dart';
 import 'folder_setup_screen.dart';
 import 'hypotheses_screen.dart';
-import 'import_obs_type_screen.dart';
 import 'invalid_json_screen.dart';
 import 'note_lists_screen.dart';
-import 'quick_add_screen.dart';
 import 'scratchpad_triage_screen.dart';
 import '../state/note_index_notifier.dart';
 import '../state/providers.dart';
@@ -27,7 +26,6 @@ const _links = [
   _NavLink('floating-notes', 'Floating Notes'),
   _NavLink('hypotheses', 'Hypotheses'),
   _NavLink('lists', 'Lists'),
-  _NavLink('import-obs', 'Import Obs Flow'),
 ];
 
 class HomeScreen extends ConsumerWidget {
@@ -59,11 +57,6 @@ class HomeScreen extends ConsumerWidget {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const NoteListsScreen()),
-        );
-      case 'import-obs':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ImportObsTypeScreen()),
         );
     }
   }
@@ -113,11 +106,11 @@ class HomeScreen extends ConsumerWidget {
         children: [
           ListTile(
             leading: const Icon(Icons.add),
-            title: const Text('Quick Add'),
+            title: const Text('Add'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const QuickAddScreen()),
+              MaterialPageRoute(builder: (_) => const AddScreen()),
             ),
           ),
           const Divider(height: 1),

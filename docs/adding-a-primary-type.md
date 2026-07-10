@@ -36,11 +36,12 @@ Internal checklist for adding a new note `primaryType`. Brief — for contributo
   `allowedPrimaryTypes` to cover an unrelated semantic just to reuse the key) and
   reference its `relType` key here. If not, leave it `[]` — the type still gets relations
   via the generic "Add Other" picker, which lists every registered relationship type.
-- **Import Obs Flow**: should this type be selectable there? Add it to the option list in
-  `import_obs_type_screen.dart` (see `docs/obs-import.md`) if so.
 
 ## Don't need to touch
 
+- `add_screen.dart` — its type dropdown iterates `noteTypeSpecs` directly, so new types
+  appear there automatically. Only special-case it (see the `hypothesis` branch in
+  `_AddScreenState._createNote`) if a title-only `createFromSpec` create wouldn't validate.
 - `note_editor_navigation.dart`, `relationship_dialog.dart` — both generic over any
   `NoteTypeSpec`/relType already.
 - Any test file, unless the new type has validation edge cases worth covering in

@@ -5,6 +5,7 @@ import '../models/note_summary.dart';
 import '../models/note_type_spec.dart';
 import '../state/note_index_notifier.dart';
 import '../widgets/undo_snackbar.dart';
+import 'add_screen.dart';
 import 'note_editor_navigation.dart';
 
 /// Lists every note of [spec]'s primaryType, with edit/delete actions, plus a
@@ -20,38 +21,17 @@ class NoteTypeListScreen extends ConsumerWidget {
     pushNoteEditor(context, spec: spec, filename: summary.filename);
   }
 
-  Future<void> _create(BuildContext context, WidgetRef ref) async {
-    final controller = TextEditingController();
-    final title = await showDialog<String>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('New ${spec.label}'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: const InputDecoration(labelText: 'Title', border: OutlineInputBorder()),
-          onSubmitted: (value) => Navigator.pop(dialogContext, value),
+  void _create(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AddScreen(
+          allowedTypes: [spec.primaryType],
+          appBarTitle: 'New ${spec.label}',
+          showBackButton: true,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, controller.text),
-            child: const Text('Create'),
-          ),
-        ],
       ),
     );
-    controller.dispose();
-    final trimmed = title?.trim() ?? '';
-    if (trimmed.isEmpty || !context.mounted) return;
-
-    final filename =
-        await ref.read(noteIndexProvider.notifier).createFromSpec(spec, title: trimmed);
-    if (!context.mounted) return;
-    pushNoteEditor(context, spec: spec, filename: filename);
   }
 
   Future<void> _delete(BuildContext context, WidgetRef ref, NoteSummary summary) async {
@@ -76,7 +56,7 @@ class NoteTypeListScreen extends ConsumerWidget {
       floatingActionButton: spec.creatable
           ? FloatingActionButton(
               tooltip: 'New ${spec.label}',
-              onPressed: () => _create(context, ref),
+              onPressed: () => _create(context),
               child: const Icon(Icons.add),
             )
           : null,
