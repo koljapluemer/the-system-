@@ -8,8 +8,9 @@ import '../widgets/undo_snackbar.dart';
 import 'add_screen.dart';
 import 'note_editor_navigation.dart';
 
-/// Lists every note of [spec]'s primaryType, with edit/delete actions, plus a
-/// "new note" action when [NoteTypeSpec.creatable] is set. Reacts
+/// Lists every note of [spec]'s primaryType. Tapping a note opens it for
+/// editing; a trailing delete action removes it. Also offers a "new note"
+/// action when [NoteTypeSpec.creatable] is set. Reacts
 /// automatically to the shared note index, including changes made from other
 /// screens (e.g. Triage or the edit form) — no manual reload.
 class NoteTypeListScreen extends ConsumerWidget {
@@ -75,20 +76,11 @@ class NoteTypeListScreen extends ConsumerWidget {
               final summary = summaries[listIndex];
               return ListTile(
                 title: Text(summary.title.isEmpty ? summary.filename : summary.title),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      tooltip: 'Edit',
-                      icon: const Icon(Icons.edit),
-                      onPressed: () => _edit(context, summary),
-                    ),
-                    IconButton(
-                      tooltip: 'Delete',
-                      icon: const Icon(Icons.delete),
-                      onPressed: () => _delete(context, ref, summary),
-                    ),
-                  ],
+                onTap: () => _edit(context, summary),
+                trailing: IconButton(
+                  tooltip: 'Delete',
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => _delete(context, ref, summary),
                 ),
               );
             },

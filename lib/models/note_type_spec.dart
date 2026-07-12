@@ -40,6 +40,11 @@ class NoteTypeSpec {
   /// [NoteDetailScreen] won't render a secondaryType picker for it.
   final List<String> secondaryTypes;
 
+  /// Whether this primaryType appears in the Lists section on the home
+  /// screen, mirrored in this primaryType's `showInLists` in
+  /// `note_schema.json`. True by default.
+  final bool showInLists;
+
   const NoteTypeSpec({
     required this.primaryType,
     required this.label,
@@ -47,6 +52,7 @@ class NoteTypeSpec {
     this.creatable = false,
     this.quickRelationshipTypes = const [],
     this.secondaryTypes = const [],
+    this.showInLists = true,
   });
 }
 

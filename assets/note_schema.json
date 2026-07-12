@@ -30,6 +30,7 @@
   "oneOf": [
     {
       "description": "Scratchpad Triage notes.",
+      "showInLists": true,
       "type": "object",
       "properties": {
         "primaryType": { "const": "scratchpad" },
@@ -44,6 +45,7 @@
     },
     {
       "description": "Art Triage notes.",
+      "showInLists": true,
       "type": "object",
       "properties": {
         "primaryType": { "const": "art" },
@@ -59,6 +61,7 @@
     },
     {
       "description": "Hypotheses tracked through a research workflow: context, experiment, notes, and findings logged as free-text entries, resolved as supported or disproven.",
+      "showInLists": true,
       "type": "object",
       "properties": {
         "primaryType": { "const": "hypothesis" },
@@ -76,6 +79,7 @@
     },
     {
       "description": "Gestalt notes: a pattern, approximated by descriptions.",
+      "showInLists": true,
       "type": "object",
       "properties": {
         "primaryType": { "const": "gestalt" },
@@ -90,6 +94,7 @@
     },
     {
       "description": "Context notes: gives context to if-then note.",
+      "showInLists": true,
       "type": "object",
       "properties": {
         "primaryType": { "const": "context" },
@@ -104,6 +109,7 @@
     },
     {
       "description": "If/then notes: a type of take.",
+      "showInLists": true,
       "type": "object",
       "properties": {
         "primaryType": { "const": "ifThen" },
@@ -118,6 +124,7 @@
     },
     {
       "description": "Description notes: describes a shape.",
+      "showInLists": true,
       "type": "object",
       "properties": {
         "primaryType": { "const": "description" },
@@ -132,6 +139,7 @@
     },
     {
       "description": "Quote notes: a verbatim quote worth keeping.",
+      "showInLists": true,
       "type": "object",
       "properties": {
         "primaryType": { "const": "quote" },
@@ -146,6 +154,7 @@
     },
     {
       "description": "Source notes: a reference to where a note or idea came from.",
+      "showInLists": true,
       "type": "object",
       "properties": {
         "primaryType": { "const": "source" },
@@ -164,6 +173,7 @@
     },
     {
       "description": "Entity notes: a person, place, organization, or other named thing.",
+      "showInLists": true,
       "type": "object",
       "properties": {
         "primaryType": { "const": "entity" },
@@ -178,6 +188,7 @@
     },
     {
       "description": "Story notes: a narrative account worth keeping.",
+      "showInLists": true,
       "type": "object",
       "properties": {
         "primaryType": { "const": "story" },

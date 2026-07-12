@@ -7,8 +7,9 @@ import 'floating_notes_screen.dart';
 import 'folder_setup_screen.dart';
 import 'hypotheses_screen.dart';
 import 'invalid_json_screen.dart';
-import 'note_lists_screen.dart';
+import 'note_type_list_screen.dart';
 import 'scratchpad_triage_screen.dart';
+import '../models/note_type_spec.dart';
 import '../state/note_index_notifier.dart';
 import '../state/providers.dart';
 
@@ -25,7 +26,6 @@ const _links = [
   _NavLink('art-triage', 'Art Triage'),
   _NavLink('floating-notes', 'Floating Notes'),
   _NavLink('hypotheses', 'Hypotheses'),
-  _NavLink('lists', 'Lists'),
 ];
 
 class HomeScreen extends ConsumerWidget {
@@ -52,11 +52,6 @@ class HomeScreen extends ConsumerWidget {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const HypothesesScreen()),
-        );
-      case 'lists':
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const NoteListsScreen()),
         );
     }
   }
@@ -119,6 +114,20 @@ class HomeScreen extends ConsumerWidget {
               title: Text(link.label),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _navigate(context, link.id),
+            ),
+          const Divider(height: 1),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Text('Lists'),
+          ),
+          for (final spec in noteTypeSpecs.where((s) => s.showInLists))
+            ListTile(
+              title: Text(spec.label),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => NoteTypeListScreen(spec: spec)),
+              ),
             ),
           const Divider(height: 1),
           const Padding(

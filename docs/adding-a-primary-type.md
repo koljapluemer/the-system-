@@ -36,6 +36,11 @@ Internal checklist for adding a new note `primaryType`. Brief — for contributo
   `allowedPrimaryTypes` to cover an unrelated semantic just to reuse the key) and
   reference its `relType` key here. If not, leave it `[]` — the type still gets relations
   via the generic "Add Other" picker, which lists every registered relationship type.
+- **`showInLists`**: should this type appear in the Lists section on the home screen?
+  Defaults to `true` in both `note_schema.json` (a `showInLists` sibling of that
+  `oneOf` branch's `description`, annotation-only — not validated) and
+  `NoteTypeSpec`. Only set `false` if this type shouldn't be browsable from that
+  overview.
 
 ## Don't need to touch
 
