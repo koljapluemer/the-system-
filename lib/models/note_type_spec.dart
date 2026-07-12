@@ -22,12 +22,6 @@ class NoteTypeSpec {
   final String label;
   final List<NoteFieldSpec> fields;
 
-  /// Whether the Lists screen for this type offers a "new note" action.
-  /// False for types whose schema has required fields beyond what [fields]
-  /// covers (e.g. hypothesis's `status`), since a generically-created note
-  /// wouldn't validate.
-  final bool creatable;
-
   /// relType keys (must exist in [relationshipTypeSpecs]) rendered as
   /// dedicated "quick add" buttons on this type's [NoteDetailScreen],
   /// alongside the always-present "Add Other" button. Empty by default — opt
@@ -37,8 +31,28 @@ class NoteTypeSpec {
   /// Allowed values for this primaryType's optional `secondaryType` field,
   /// mirrored in this primaryType's `enum` in `note_schema.json`. Empty by
   /// default — this primaryType has no secondaryType concept, and
-  /// [NoteDetailScreen] won't render a secondaryType picker for it.
+  /// [NoteDetailScreen] won't render a secondaryType picker for it. Order
+  /// matters: the first entry is this type's default secondaryType, assigned
+  /// to new notes unless the user picks otherwise.
   final List<String> secondaryTypes;
+
+  /// The secondaryType values shown by default in this type's list-view
+  /// filter, mirrored in the `defaultVisible` annotation beside this type's
+  /// `secondaryType` property in `note_schema.json`. Empty by default —
+  /// meaning "no restriction", i.e. every value in [secondaryTypes] is shown
+  /// by default — matching the schema convention of omitting `defaultVisible`
+  /// entirely rather than redundantly listing every value.
+  final List<String> defaultVisibleSecondaryTypes;
+
+  /// [defaultVisibleSecondaryTypes], resolved against the "empty means show
+  /// all" convention above.
+  List<String> get effectiveDefaultVisible =>
+      defaultVisibleSecondaryTypes.isEmpty ? secondaryTypes : defaultVisibleSecondaryTypes;
+
+  /// The secondaryType assigned to a new note of this type unless the user
+  /// picks otherwise — the first entry in [secondaryTypes]. Only call this
+  /// when [secondaryTypes] is non-empty.
+  String get defaultSecondaryType => secondaryTypes.first;
 
   /// Whether this primaryType appears in the Lists section on the home
   /// screen, mirrored in this primaryType's `showInLists` in
@@ -49,9 +63,9 @@ class NoteTypeSpec {
     required this.primaryType,
     required this.label,
     required this.fields,
-    this.creatable = false,
     this.quickRelationshipTypes = const [],
     this.secondaryTypes = const [],
+    this.defaultVisibleSecondaryTypes = const [],
     this.showInLists = true,
   });
 }
@@ -74,21 +88,32 @@ const noteTypeSpecs = [
       NoteFieldSpec(key: 'image', label: 'Image (filename)'),
     ],
   ),
-  // Only 'title' is exposed here: status and the context/experiment/notes/
-  // findings arrays are managed by the dedicated Hypotheses flow, not the
-  // generic edit form (which merges only the fields listed here, so those
-  // keys are left untouched by it).
+  // Only 'title' is exposed here: secondaryType and the context/experiment/
+  // notes/findings arrays are managed by the dedicated Hypotheses flow, not
+  // the generic edit form (which merges only the fields listed here, so
+  // those keys are left untouched by it).
   NoteTypeSpec(
     primaryType: 'hypothesis',
     label: 'Hypothesis',
+    secondaryTypes: ['active', 'supported', 'disproven'],
+    defaultVisibleSecondaryTypes: ['active'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
     ],
   ),
   NoteTypeSpec(
+    primaryType: 'milestone',
+    label: 'Milestone',
+    secondaryTypes: ['open', 'failed', 'soso'],
+    defaultVisibleSecondaryTypes: ['open'],
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Title', required: true),
+      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
+    ],
+  ),
+  NoteTypeSpec(
     primaryType: 'gestalt',
     label: 'Gestalt',
-    creatable: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -97,7 +122,6 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'context',
     label: 'Context',
-    creatable: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -106,7 +130,6 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'ifThen',
     label: 'If/Then',
-    creatable: true,
     quickRelationshipTypes: ['source', 'evidence'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
@@ -116,7 +139,6 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'description',
     label: 'Description',
-    creatable: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -125,7 +147,6 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'quote',
     label: 'Quote',
-    creatable: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -134,7 +155,6 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'source',
     label: 'Source',
-    creatable: true,
     secondaryTypes: ['book', 'article', 'blog', 'video', 'software', 'misc'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
@@ -144,7 +164,6 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'entity',
     label: 'Entity',
-    creatable: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -153,7 +172,6 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'story',
     label: 'Story',
-    creatable: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),

@@ -6,14 +6,14 @@ Internal checklist for adding a new note `primaryType`. Brief — for contributo
   `additionalProperties: false`). This is the source of truth the app validates against;
   nothing else auto-derives from it.
 - `lib/models/note_type_spec.dart` — add a `NoteTypeSpec` entry: `fields` (kept in sync
-  with the schema properties above), `creatable`, `quickRelationshipTypes`.
+  with the schema properties above), `quickRelationshipTypes`. Every type's Lists screen
+  gets a "new note" FAB automatically (`NoteTypeListScreen` isn't gated by any flag) —
+  if the type has state a title-only `createFromSpec` create can't set up (see the
+  `hypothesis` branch in `_AddScreenState._createNote`), special-case creation there
+  instead, the way `hypothesis` does.
 
 ## Must decide
 
-- **`creatable`**: only set `true` if every required schema field beyond `title` is
-  covered by `fields` (see the `hypothesis` entry's comment for why — a generically
-  created note wouldn't validate otherwise, since `createFromSpec` only fills `title` +
-  empty strings for the rest of `fields`).
 - **Generic `NoteDetailScreen` vs. a bespoke screen**: `NoteDetailScreen` (inline
   pencil-edit per `fields` entry + unified relationship list) is the default for every
   type, reached via `pushNoteEditor`. Only build a bespoke screen (see
@@ -28,7 +28,22 @@ Internal checklist for adding a new note `primaryType`. Brief — for contributo
   the schema (an `enum` on that type's `secondaryType` property in `note_schema.json`) and
   `NoteTypeSpec.secondaryTypes` here — `NoteDetailScreen` renders a dropdown automatically
   whenever `secondaryTypes` is non-empty. Leave it `[]` (the default) if this type has no
-  such concept.
+  such concept. Order matters: the **first entry is this type's default** — the value
+  stamped onto a newly created note (via `AddScreen`'s secondaryType picker, or
+  `NoteIndexNotifier.createFromSpec`'s `secondaryType` param) unless the user picks a
+  different value, and unless a value was already chosen this session (see
+  `LastSecondaryTypeNotifier` in `lib/state/secondary_type_session.dart`).
+  Any type with a non-empty `secondaryTypes` automatically gets a `SecondaryTypeFilterBar`
+  (`lib/widgets/secondary_type_filter_bar.dart`) on its list view (`NoteTypeListScreen`,
+  or reuse the same widget/provider directly if the type has a bespoke list screen like
+  Hypotheses does) for free — no per-type wiring needed beyond this declaration.
+- **`defaultVisibleSecondaryTypes`**: which of this type's `secondaryTypes` should be
+  visible by default in that filter bar (session-only — see
+  `SecondaryTypeFilterNotifier`)? Mirror it in the schema as a `defaultVisible` array
+  sibling next to that type's `secondaryType` `enum` (e.g. `hypothesis`'s
+  `"defaultVisible": ["active"]`). Leave both the schema annotation and this Dart field
+  omitted/`[]` (the default) if every value should be visible by default — that's the
+  convention `source` uses, rather than redundantly listing every enum value.
 - **`quickRelationshipTypes`**: does this type have a "commonly added" relationship? If
   so, add/reuse an entry in `lib/models/relationship_type_spec.dart`'s
   `relationshipTypeSpecs` (a new `RelationshipTypeSpec` if the relType or its

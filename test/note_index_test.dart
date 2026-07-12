@@ -57,36 +57,19 @@ void main() {
       });
       expect(index.summariesOfType('scratchpad').first.title, '');
     });
-  });
 
-  group('hypothesesWithStatus', () {
-    test('includes hypothesis notes matching the given status', () {
+    test('carries secondaryType through', () {
       final index = NoteIndex(entries: {
-        'h1.json': {'primaryType': 'hypothesis', 'status': 'ACTIVE', 'title': 'H1'},
+        'h1.json': {'primaryType': 'hypothesis', 'title': 'H1', 'secondaryType': 'active'},
       });
-      final filenames = index.hypothesesWithStatus('ACTIVE').map((s) => s.filename);
-      expect(filenames, contains('h1.json'));
+      expect(index.summariesOfType('hypothesis').first.secondaryType, 'active');
     });
 
-    test('excludes hypothesis notes with a different status', () {
+    test('defaults secondaryType to null when missing', () {
       final index = NoteIndex(entries: {
-        'h2.json': {'primaryType': 'hypothesis', 'status': 'SUPPORTED', 'title': 'H2'},
+        'h2.json': {'primaryType': 'hypothesis', 'title': 'H2'},
       });
-      expect(index.hypothesesWithStatus('ACTIVE'), isEmpty);
-    });
-
-    test('excludes notes with a different primaryType', () {
-      final index = NoteIndex(entries: {
-        'a.json': {'primaryType': 'art', 'status': 'ACTIVE'},
-      });
-      expect(index.hypothesesWithStatus('ACTIVE'), isEmpty);
-    });
-
-    test('defaults title to empty string when missing', () {
-      final index = NoteIndex(entries: {
-        'h3.json': {'primaryType': 'hypothesis', 'status': 'ACTIVE'},
-      });
-      expect(index.hypothesesWithStatus('ACTIVE').first.title, '');
+      expect(index.summariesOfType('hypothesis').first.secondaryType, isNull);
     });
   });
 

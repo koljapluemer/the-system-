@@ -6,6 +6,7 @@ import '../models/note_index.dart';
 import '../models/note_type_spec.dart';
 import '../models/relationship_type_spec.dart';
 import '../state/note_index_notifier.dart';
+import '../state/secondary_type_session.dart';
 import '../widgets/array_list_section.dart';
 import '../widgets/inline_editable_text.dart';
 import '../widgets/relationship_dialog.dart';
@@ -43,6 +44,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
       updated.remove('secondaryType');
     } else {
       updated['secondaryType'] = value;
+      ref.read(lastSecondaryTypeProvider.notifier).record(widget.spec.primaryType, value);
     }
     return ref.read(noteIndexProvider.notifier).write(widget.filename, updated);
   }

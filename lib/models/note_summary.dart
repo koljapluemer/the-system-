@@ -3,6 +3,7 @@
 class NoteSummary {
   final String filename;
   final String title;
+  final String? secondaryType;
 
-  const NoteSummary({required this.filename, required this.title});
+  const NoteSummary({required this.filename, required this.title, this.secondaryType});
 }

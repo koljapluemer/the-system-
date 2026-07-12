@@ -44,15 +44,16 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
     await update((index) => index.copyWith(entries: {...index.entries}..remove(filename)));
   }
 
-  /// Creates a new `primaryType: "hypothesis"` note, ACTIVE with empty
+  /// Creates a new `primaryType: "hypothesis"` note, active with empty
   /// context/experiment/notes/findings sections, from the inline add field on
   /// the Hypotheses screen.
   Future<String> createHypothesis({required String title}) async {
     final folder = (await ref.read(dataFolderProvider.future))!;
+    final hypothesisSpec = noteTypeSpecs.firstWhere((s) => s.primaryType == 'hypothesis');
     final content = <String, dynamic>{
       'primaryType': 'hypothesis',
       'title': title,
-      'status': 'ACTIVE',
+      'secondaryType': hypothesisSpec.defaultSecondaryType,
       'context': <String>[],
       'experiment': <String>[],
       'notes': <String>[],
@@ -66,13 +67,20 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
 
   /// Creates a new note of [spec]'s primaryType with [title] and an empty
   /// string for every other field in [spec.fields] (e.g. `content`), for the
-  /// "new note" action on a type's Lists screen — see NoteTypeSpec.creatable.
-  Future<String> createFromSpec(NoteTypeSpec spec, {required String title}) async {
+  /// "new note" action on a type's Lists screen. [secondaryType], when given,
+  /// is stamped onto the note too (the Add screen's secondaryType picker,
+  /// when [spec.secondaryTypes] is non-empty).
+  Future<String> createFromSpec(
+    NoteTypeSpec spec, {
+    required String title,
+    String? secondaryType,
+  }) async {
     final folder = (await ref.read(dataFolderProvider.future))!;
     final content = <String, dynamic>{'primaryType': spec.primaryType, 'title': title};
     for (final field in spec.fields) {
       if (field.key != 'title') content[field.key] = '';
     }
+    if (secondaryType != null) content['secondaryType'] = secondaryType;
     final filename =
         await ref.read(notesServiceProvider).createNote(folder, content, slugSource: title);
     await update((index) => index.copyWith(entries: {...index.entries, filename: content}));

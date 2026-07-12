@@ -73,7 +73,7 @@ void main() {
     expect(await File('${tempDir.path}/gone.json').exists(), isFalse);
   });
 
-  test('createHypothesis adds an ACTIVE hypothesis with empty sections', () async {
+  test('createHypothesis adds an active hypothesis with empty sections', () async {
     await container.read(noteIndexProvider.future);
 
     final filename =
@@ -82,13 +82,13 @@ void main() {
     final index = container.read(noteIndexProvider).value!;
     expect(index.entries[filename]?['primaryType'], 'hypothesis');
     expect(index.entries[filename]?['title'], 'My Hypothesis');
-    expect(index.entries[filename]?['status'], 'ACTIVE');
+    expect(index.entries[filename]?['secondaryType'], 'active');
     expect(index.entries[filename]?['context'], <String>[]);
     expect(index.entries[filename]?['experiment'], <String>[]);
     expect(index.entries[filename]?['notes'], <String>[]);
     expect(index.entries[filename]?['findings'], <String>[]);
 
     final onDisk = jsonDecode(await File('${tempDir.path}/$filename').readAsString());
-    expect(onDisk['status'], 'ACTIVE');
+    expect(onDisk['secondaryType'], 'active');
   });
 }

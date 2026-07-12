@@ -58,7 +58,7 @@ void main() {
         'g.json': {
           'primaryType': 'hypothesis',
           'title': 'G',
-          'status': 'ACTIVE',
+          'secondaryType': 'active',
           'context': ['some context'],
           'experiment': ['do the thing'],
           'notes': ['a note'],
@@ -74,7 +74,7 @@ void main() {
         'h.json': {
           'primaryType': 'hypothesis',
           'title': 'H',
-          'status': 'ACTIVE',
+          'secondaryType': 'active',
           'context': <String>[],
           'experiment': <String>[],
           'notes': <String>[],
@@ -85,9 +85,25 @@ void main() {
       expect(result, isNot(contains('h.json')));
     });
 
-    test('flags a hypothesis note with an invalid status value', () async {
+    test('accepts a hypothesis note with no secondaryType (legacy status field retired)', () async {
       final index = NoteIndex(entries: {
-        'i.json': {'primaryType': 'hypothesis', 'title': 'I', 'status': 'MAYBE'},
+        'h2.json': {'primaryType': 'hypothesis', 'title': 'H2'},
+      });
+      final result = await service.findInvalid(index);
+      expect(result, isNot(contains('h2.json')));
+    });
+
+    test('flags a legacy hypothesis note still carrying the retired status field', () async {
+      final index = NoteIndex(entries: {
+        'legacy.json': {'primaryType': 'hypothesis', 'title': 'Legacy', 'status': 'ACTIVE'},
+      });
+      final result = await service.findInvalid(index);
+      expect(result, contains('legacy.json'));
+    });
+
+    test('flags a hypothesis note with an invalid secondaryType value', () async {
+      final index = NoteIndex(entries: {
+        'i.json': {'primaryType': 'hypothesis', 'title': 'I', 'secondaryType': 'MAYBE'},
       });
       final result = await service.findInvalid(index);
       expect(result, contains('i.json'));
@@ -95,7 +111,7 @@ void main() {
 
     test('flags a hypothesis note missing the required title field', () async {
       final index = NoteIndex(entries: {
-        'j.json': {'primaryType': 'hypothesis', 'status': 'ACTIVE'},
+        'j.json': {'primaryType': 'hypothesis', 'secondaryType': 'active'},
       });
       final result = await service.findInvalid(index);
       expect(result, contains('j.json'));
@@ -106,12 +122,28 @@ void main() {
         'k.json': {
           'primaryType': 'hypothesis',
           'title': 'K',
-          'status': 'ACTIVE',
+          'secondaryType': 'active',
           'context': [1, 2],
         },
       });
       final result = await service.findInvalid(index);
       expect(result, contains('k.json'));
+    });
+
+    test('accepts a well-formed milestone note with a valid secondaryType', () async {
+      final index = NoteIndex(entries: {
+        'm.json': {'primaryType': 'milestone', 'title': 'M', 'content': 'ship it', 'secondaryType': 'open'},
+      });
+      final result = await service.findInvalid(index);
+      expect(result, isNot(contains('m.json')));
+    });
+
+    test('flags a milestone note with an invalid secondaryType value', () async {
+      final index = NoteIndex(entries: {
+        'n.json': {'primaryType': 'milestone', 'title': 'N', 'secondaryType': 'somewhat'},
+      });
+      final result = await service.findInvalid(index);
+      expect(result, contains('n.json'));
     });
 
     test('flags a scratchpad note missing the required body field', () async {

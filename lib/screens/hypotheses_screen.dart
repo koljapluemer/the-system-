@@ -4,16 +4,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/note_summary.dart';
 import '../models/note_type_spec.dart';
 import '../state/note_index_notifier.dart';
+import '../state/secondary_type_session.dart';
+import '../widgets/secondary_type_filter_bar.dart';
 import '../widgets/undo_snackbar.dart';
 import 'hypothesis_detail_screen.dart';
 import 'note_edit_screen.dart';
 
 final _hypothesisSpec = noteTypeSpecs.firstWhere((s) => s.primaryType == 'hypothesis');
 
-/// Dedicated CRUD view of ACTIVE hypotheses, with an inline add field at the
-/// bottom. Resolved hypotheses (SUPPORTED/DISPROVEN) drop off this list
-/// automatically once their status changes, since it reactively watches the
-/// shared note index — see HypothesisDetailScreen.
+/// Dedicated CRUD view of hypotheses, with an inline add field at the
+/// bottom and a [SecondaryTypeFilterBar] to show/hide by secondaryType
+/// (active/supported/disproven) — active only by default, session-only, see
+/// [secondaryTypeFilterProvider]. Reactively watches the shared note index,
+/// so a resolved hypothesis (see HypothesisDetailScreen) drops off the
+/// moment it no longer matches the active filter.
 class HypothesesScreen extends ConsumerStatefulWidget {
   const HypothesesScreen({super.key});
 
@@ -73,18 +77,30 @@ class _HypothesesScreenState extends ConsumerState<HypothesesScreen> {
   @override
   Widget build(BuildContext context) {
     final asyncIndex = ref.watch(noteIndexProvider);
+    ref.watch(secondaryTypeFilterProvider);
+    final visible = ref.read(secondaryTypeFilterProvider.notifier).visibleFor(_hypothesisSpec);
     return Scaffold(
       appBar: AppBar(title: const Text('Hypotheses')),
       body: Column(
         children: [
+          SecondaryTypeFilterBar(
+            secondaryTypes: _hypothesisSpec.secondaryTypes,
+            visible: visible,
+            onChanged: (updated) => ref
+                .read(secondaryTypeFilterProvider.notifier)
+                .setVisible(_hypothesisSpec.primaryType, updated),
+          ),
           Expanded(
             child: asyncIndex.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => Center(child: Text('Failed to load notes: $error')),
               data: (index) {
-                final summaries = index.hypothesesWithStatus('ACTIVE');
+                final summaries = index
+                    .summariesOfType('hypothesis')
+                    .where((s) => s.secondaryType == null || visible.contains(s.secondaryType))
+                    .toList();
                 if (summaries.isEmpty) {
-                  return const Center(child: Text('No active hypotheses.'));
+                  return const Center(child: Text('No hypotheses match this filter.'));
                 }
                 return ListView.separated(
                   itemCount: summaries.length,

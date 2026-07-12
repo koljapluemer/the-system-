@@ -7,6 +7,7 @@ import '../models/note_search.dart';
 import '../models/note_type_spec.dart';
 import '../state/add_type_usage_notifier.dart';
 import '../state/note_index_notifier.dart';
+import '../state/secondary_type_session.dart';
 import 'note_detail_screen.dart';
 import 'note_editor_navigation.dart';
 
@@ -76,7 +77,18 @@ class _AddScreenState extends ConsumerState<AddScreen> {
       widget.allowedTypes ?? [for (final spec in noteTypeSpecs) spec.primaryType];
   late String _primaryType = widget.initialType ??
       (_allowedTypes.contains('scratchpad') ? 'scratchpad' : _allowedTypes.first);
+
+  /// The secondaryType picker's current value, when [_spec] has one to
+  /// offer (see [_showSecondaryTypePicker]). Reset to that type's session
+  /// last-chosen-or-default value whenever [_primaryType] changes.
+  String? _secondaryType;
   bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _resetSecondaryType();
+  }
 
   @override
   void dispose() {
@@ -87,15 +99,34 @@ class _AddScreenState extends ConsumerState<AddScreen> {
 
   NoteTypeSpec get _spec => noteTypeSpecs.firstWhere((s) => s.primaryType == _primaryType);
 
-  /// hypothesis needs `status` + empty log arrays beyond what a generic
-  /// title-only create covers, so it goes through the dedicated method
-  /// instead of [NoteIndexNotifier.createFromSpec].
+  /// hypothesis is excluded from this even though it now has
+  /// `secondaryTypes` — it bypasses generic creation entirely (see
+  /// [_createNote]) and always starts at its default; there's no "create a
+  /// pre-resolved hypothesis" affordance.
+  bool get _showSecondaryTypePicker => _spec.secondaryTypes.isNotEmpty && _primaryType != 'hypothesis';
+
+  void _resetSecondaryType() {
+    _secondaryType = _showSecondaryTypePicker
+        ? ref.read(lastSecondaryTypeProvider.notifier).defaultFor(_spec)
+        : null;
+  }
+
+  void _setPrimaryType(String type) {
+    setState(() {
+      _primaryType = type;
+      _resetSecondaryType();
+    });
+  }
+
+  /// hypothesis needs `secondaryType` + empty log arrays beyond what a
+  /// generic title-only create covers, so it goes through the dedicated
+  /// method instead of [NoteIndexNotifier.createFromSpec].
   Future<String> _createNote(String title) {
     final notifier = ref.read(noteIndexProvider.notifier);
     if (_primaryType == 'hypothesis') {
       return notifier.createHypothesis(title: title);
     }
-    return notifier.createFromSpec(_spec, title: title);
+    return notifier.createFromSpec(_spec, title: title, secondaryType: _secondaryType);
   }
 
   Future<String?> _commit() async {
@@ -106,6 +137,9 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     final filename = await _createNote(title);
     await widget.onCreated?.call(ref, filename);
     ref.read(addTypeUsageProvider.notifier).recordAdd(_primaryType);
+    if (_showSecondaryTypePicker && _secondaryType != null) {
+      ref.read(lastSecondaryTypeProvider.notifier).record(_primaryType, _secondaryType!);
+    }
     return filename;
   }
 
@@ -184,8 +218,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                         label: Text(
                           noteTypeSpecs.firstWhere((s) => s.primaryType == type).label,
                         ),
-                        onPressed:
-                            _saving ? null : () => setState(() => _primaryType = type),
+                        onPressed: _saving ? null : () => _setPrimaryType(type),
                       ),
                   ],
                 ),
@@ -206,8 +239,24 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                 ],
                 onChanged: (_saving || _allowedTypes.length == 1)
                     ? null
-                    : (value) => setState(() => _primaryType = value!),
+                    : (value) => _setPrimaryType(value!),
               ),
+              if (_showSecondaryTypePicker) ...[
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  key: ValueKey(_primaryType),
+                  initialValue: _secondaryType,
+                  decoration: const InputDecoration(
+                    labelText: 'Secondary Type',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: [
+                    for (final type in _spec.secondaryTypes)
+                      DropdownMenuItem(value: type, child: Text(type)),
+                  ],
+                  onChanged: _saving ? null : (value) => setState(() => _secondaryType = value),
+                ),
+              ],
               const SizedBox(height: 16),
               TextField(
                 controller: _titleController,

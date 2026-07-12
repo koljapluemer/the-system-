@@ -30,20 +30,16 @@ class NoteIndex {
           if (e.value['primaryType'] == primaryType && e.value['triaged'] != 'true') e.key,
       ];
 
-  /// Summaries (filename + title) of every note of [primaryType], regardless
-  /// of triaged status.
+  /// Summaries (filename + title + secondaryType) of every note of
+  /// [primaryType], regardless of triaged status.
   List<NoteSummary> summariesOfType(String primaryType) => [
         for (final e in entries.entries)
           if (e.value['primaryType'] == primaryType)
-            NoteSummary(filename: e.key, title: e.value['title'] as String? ?? ''),
-      ];
-
-  /// Summaries of hypothesis notes currently in [status] (e.g. "ACTIVE"),
-  /// for the dedicated Hypotheses screen.
-  List<NoteSummary> hypothesesWithStatus(String status) => [
-        for (final e in entries.entries)
-          if (e.value['primaryType'] == 'hypothesis' && e.value['status'] == status)
-            NoteSummary(filename: e.key, title: e.value['title'] as String? ?? ''),
+            NoteSummary(
+              filename: e.key,
+              title: e.value['title'] as String? ?? '',
+              secondaryType: e.value['secondaryType'] as String?,
+            ),
       ];
 
   /// Notes eligible for the floating-notes canvas: `primaryType ==

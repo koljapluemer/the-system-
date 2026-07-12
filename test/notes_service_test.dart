@@ -102,7 +102,7 @@ void main() {
     test('writes the given content under a filename slugified from slugSource', () async {
       final filename = await service.createNote(
         tempDir.path,
-        {'primaryType': 'hypothesis', 'title': 'Something else', 'status': 'ACTIVE'},
+        {'primaryType': 'hypothesis', 'title': 'Something else', 'secondaryType': 'active'},
         slugSource: 'Buy Milk!! 2%',
       );
       expect(filename, matches(RegExp(r'^buy-milk-2-[0-9a-z]{6}\.json$')));

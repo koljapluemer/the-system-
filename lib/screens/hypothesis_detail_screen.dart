@@ -6,10 +6,10 @@ import '../state/note_index_notifier.dart';
 import '../widgets/array_list_section.dart';
 
 /// Detail/edit view for a single hypothesis: four free-text logs (Context,
-/// Experiment, Notes, Findings) plus the ACTIVE -> SUPPORTED/DISPROVEN
-/// resolution. Watches the shared note index reactively, so changes made
-/// here (including status) are reflected immediately if the Hypotheses list
-/// screen underneath is popped back to.
+/// Experiment, Notes, Findings) plus the active -> supported/disproven
+/// resolution, stored as `secondaryType`. Watches the shared note index
+/// reactively, so changes made here are reflected immediately if the
+/// Hypotheses list screen underneath is popped back to.
 class HypothesisDetailScreen extends ConsumerWidget {
   final String filename;
 
@@ -19,8 +19,10 @@ class HypothesisDetailScreen extends ConsumerWidget {
     return ref.read(noteIndexProvider.notifier).write(filename, {...note, key: items});
   }
 
-  Future<void> _setStatus(WidgetRef ref, NoteFile note, String status) {
-    return ref.read(noteIndexProvider.notifier).write(filename, {...note, 'status': status});
+  Future<void> _setSecondaryType(WidgetRef ref, NoteFile note, String secondaryType) {
+    return ref
+        .read(noteIndexProvider.notifier)
+        .write(filename, {...note, 'secondaryType': secondaryType});
   }
 
   @override
@@ -50,15 +52,15 @@ class HypothesisDetailScreen extends ConsumerWidget {
     }
 
     final title = note['title'] as String? ?? '';
-    final status = note['status'] as String? ?? 'ACTIVE';
-    final resolved = status != 'ACTIVE';
+    final secondaryType = note['secondaryType'] as String? ?? 'active';
+    final resolved = secondaryType != 'active';
 
     return Scaffold(
       appBar: AppBar(title: Text(title.isEmpty ? filename : title)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Status: $status', style: Theme.of(context).textTheme.labelLarge),
+          Text('Status: $secondaryType', style: Theme.of(context).textTheme.labelLarge),
           const SizedBox(height: 16),
           ArrayListSection(
             label: 'Context',
@@ -85,14 +87,14 @@ class HypothesisDetailScreen extends ConsumerWidget {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: resolved ? null : () => _setStatus(ref, note, 'SUPPORTED'),
+                  onPressed: resolved ? null : () => _setSecondaryType(ref, note, 'supported'),
                   child: const Text('Mark supported'),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: OutlinedButton(
-                  onPressed: resolved ? null : () => _setStatus(ref, note, 'DISPROVEN'),
+                  onPressed: resolved ? null : () => _setSecondaryType(ref, note, 'disproven'),
                   child: const Text('Mark disproven'),
                 ),
               ),

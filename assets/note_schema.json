@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "The System note file",
-  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: scratchpad, art, hypothesis, gestalt, context, ifThen, description, quote, source, entity, or story.",
+  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: scratchpad, art, hypothesis, milestone, gestalt, context, ifThen, description, quote, source, entity, or story.",
   "definitions": {
     "rels": {
       "description": "Relationships to other note files, e.g. [\"source\", \"other-note.json\"].",
@@ -67,14 +67,38 @@
         "primaryType": { "const": "hypothesis" },
         "title": { "type": "string" },
         "aliases": { "$ref": "#/definitions/aliases" },
-        "status": { "type": "string", "enum": ["ACTIVE", "SUPPORTED", "DISPROVEN"] },
+        "secondaryType": {
+          "type": "string",
+          "enum": ["active", "supported", "disproven"],
+          "defaultVisible": ["active"]
+        },
         "context": { "type": "array", "items": { "type": "string" } },
         "experiment": { "type": "array", "items": { "type": "string" } },
         "notes": { "type": "array", "items": { "type": "string" } },
         "findings": { "type": "array", "items": { "type": "string" } },
         "rels": { "$ref": "#/definitions/rels" }
       },
-      "required": ["primaryType", "title", "status"],
+      "required": ["primaryType", "title"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Milestone notes: a status marker (open, failed, or soso) with a free-text description.",
+      "showInLists": true,
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "milestone" },
+        "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
+        "content": { "type": "string" },
+        "secondaryType": {
+          "type": "string",
+          "enum": ["open", "failed", "soso"],
+          "defaultVisible": ["open"]
+        },
+        "rels": { "$ref": "#/definitions/rels" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title"],
       "additionalProperties": false
     },
     {
