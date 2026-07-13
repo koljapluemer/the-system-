@@ -17,8 +17,10 @@ import 'note_editor_navigation.dart';
 /// pencil button to inline-edit each, aliases likewise behind a pencil
 /// toggle, plus a unified relationship list (any `[relType, filename]` rel,
 /// labeled by type) with "quick add" buttons per [NoteTypeSpec
-/// .quickRelationshipTypes] and a catch-all "Add Other" picker for every
-/// other registered relationship type. Reached from every type's Lists
+/// .quickRelationshipTypes], a catch-all "Add Other" picker for every other
+/// registered relationship type, and — always last — a "See Also" button
+/// (allowed for every primaryType, so it's never listed in the "Add Other"
+/// picker; it's already on every note). Reached from every type's Lists
 /// screen via [pushNoteEditor], and as the Import Obs Flow's post-create
 /// screen.
 class NoteDetailScreen extends ConsumerStatefulWidget {
@@ -148,7 +150,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
       relationshipTypeSpecs.firstWhere((s) => s.relType == relType);
 
   void _showAddOtherPicker(BuildContext context) {
-    final offered = widget.spec.quickRelationshipTypes.toSet();
+    final offered = {...widget.spec.quickRelationshipTypes, seeAlsoRelType};
     final other = [for (final s in relationshipTypeSpecs) if (!offered.contains(s.relType)) s];
     showDialog<void>(
       context: context,
@@ -245,6 +247,18 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
               icon: const Icon(Icons.add_link),
               label: const Text('Add Other'),
               onPressed: () => _showAddOtherPicker(context),
+            ),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.add_link),
+              label: Text(_quickSpec(seeAlsoRelType).buttonLabel),
+              onPressed: () => showRelationshipDialog(
+                context,
+                ref,
+                filename: widget.filename,
+                relType: seeAlsoRelType,
+                allowedPrimaryTypes: _quickSpec(seeAlsoRelType).allowedPrimaryTypes,
+                dialogTitle: _quickSpec(seeAlsoRelType).buttonLabel,
+              ),
             ),
           ],
         ),

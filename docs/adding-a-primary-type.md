@@ -11,6 +11,12 @@ Internal checklist for adding a new note `primaryType`. Brief — for contributo
   if the type has state a title-only `createFromSpec` create can't set up (see the
   `hypothesis` branch in `_AddScreenState._createNote`), special-case creation there
   instead, the way `hypothesis` does.
+- `lib/models/relationship_type_spec.dart`'s `_allPrimaryTypes` — a hand-maintained
+  mirror of every `noteTypeSpecs` primaryType (can't import `note_type_spec.dart`
+  directly; that file imports this one), used as `seeAlso`'s `allowedPrimaryTypes` so the
+  universal "See Also" button on `NoteDetailScreen` can attach any type to any type. A
+  new primaryType left out of this list simply can't be picked as a "See Also" target —
+  no crash, just a silent gap, so don't forget it.
 
 ## Must decide
 
@@ -50,7 +56,10 @@ Internal checklist for adding a new note `primaryType`. Brief — for contributo
   `allowedPrimaryTypes` differ from an existing one — don't stretch an existing entry's
   `allowedPrimaryTypes` to cover an unrelated semantic just to reuse the key) and
   reference its `relType` key here. If not, leave it `[]` — the type still gets relations
-  via the generic "Add Other" picker, which lists every registered relationship type.
+  via the generic "Add Other" picker, which lists every registered relationship type
+  except `seeAlso` (see below), plus the always-present "See Also" button, which every
+  new primaryType gets automatically since it lists every registered primaryType in
+  `_allPrimaryTypes`.
 - **`showInLists`**: should this type appear in the Lists section on the home screen?
   Defaults to `true` in both `note_schema.json` (a `showInLists` sibling of that
   `oneOf` branch's `description`, annotation-only — not validated) and
