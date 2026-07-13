@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "The System note file",
-  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: scratchpad, art, hypothesis, milestone, gestalt, context, ifThen, description, quote, source, entity, or story.",
+  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: scratchpad, art, hypothesis, milestone, gestalt, context, ifThen, description, quote, source, entity, story, or log.",
   "definitions": {
     "rels": {
       "description": "Relationships to other note files, e.g. [\"source\", \"other-note.json\"].",
@@ -99,6 +99,25 @@
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Log notes: a timestamped free-text entry attached to a hypothesis, source, or milestone.",
+      "showInLists": false,
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "log" },
+        "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
+        "content": { "type": "string" },
+        "createdAt": {
+          "description": "ISO 8601 timestamp stamped automatically at creation.",
+          "type": "string"
+        },
+        "rels": { "$ref": "#/definitions/rels" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title", "createdAt"],
       "additionalProperties": false
     },
     {

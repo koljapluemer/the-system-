@@ -23,8 +23,11 @@ class AddScreen extends ConsumerStatefulWidget {
   /// (dropdown disabled, no quick-select chips) — used by Lists (locked to
   /// that list's type) and single-type relationship adds. More than one
   /// entry leaves it open with [initialType] pre-selected. Defaults to every
-  /// registered `primaryType` (`null` — resolved at build time from
-  /// [noteTypeSpecs], so new types need no change here).
+  /// [NoteTypeSpec.showInLists] `primaryType` (`null` — resolved at build
+  /// time from [noteTypeSpecs], so new types need no change here), excluding
+  /// relationship-only types like `log` that would otherwise be creatable
+  /// with nothing to attach to — those are only reachable by explicitly
+  /// passing `allowedTypes`, as the relationship dialog does.
   final List<String>? allowedTypes;
 
   /// Pre-selected type; must be in [allowedTypes]. Defaults to 'scratchpad'
@@ -73,8 +76,8 @@ class AddScreen extends ConsumerStatefulWidget {
 class _AddScreenState extends ConsumerState<AddScreen> {
   late final _titleController = TextEditingController(text: widget.initialTitle ?? '');
   final _titleFocusNode = FocusNode();
-  late final List<String> _allowedTypes =
-      widget.allowedTypes ?? [for (final spec in noteTypeSpecs) spec.primaryType];
+  late final List<String> _allowedTypes = widget.allowedTypes ??
+      [for (final spec in noteTypeSpecs) if (spec.showInLists) spec.primaryType];
   late String _primaryType = widget.initialType ??
       (_allowedTypes.contains('scratchpad') ? 'scratchpad' : _allowedTypes.first);
 
@@ -118,13 +121,17 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     });
   }
 
-  /// hypothesis needs `secondaryType` + empty log arrays beyond what a
-  /// generic title-only create covers, so it goes through the dedicated
-  /// method instead of [NoteIndexNotifier.createFromSpec].
+  /// hypothesis needs `secondaryType` + empty log arrays, and log needs an
+  /// automatic `createdAt`, beyond what a generic title-only create covers,
+  /// so both go through a dedicated method instead of
+  /// [NoteIndexNotifier.createFromSpec].
   Future<String> _createNote(String title) {
     final notifier = ref.read(noteIndexProvider.notifier);
     if (_primaryType == 'hypothesis') {
       return notifier.createHypothesis(title: title);
+    }
+    if (_primaryType == 'log') {
+      return notifier.createLog(title: title);
     }
     return notifier.createFromSpec(_spec, title: title, secondaryType: _secondaryType);
   }

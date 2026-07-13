@@ -59,6 +59,13 @@ class NoteTypeSpec {
   /// `note_schema.json`. True by default.
   final bool showInLists;
 
+  /// Whether this type's view screen renders a dedicated expandable "Logs"
+  /// section (see `lib/widgets/logs_section.dart`): every related `log`
+  /// note (relType `log`), newest first, plus an "Add Log" button. False by
+  /// default — opt in per type, alongside a `log` entry in
+  /// `relationship_type_spec.dart`.
+  final bool showLogs;
+
   const NoteTypeSpec({
     required this.primaryType,
     required this.label,
@@ -67,6 +74,7 @@ class NoteTypeSpec {
     this.secondaryTypes = const [],
     this.defaultVisibleSecondaryTypes = const [],
     this.showInLists = true,
+    this.showLogs = false,
   });
 }
 
@@ -97,6 +105,7 @@ const noteTypeSpecs = [
     label: 'Hypothesis',
     secondaryTypes: ['active', 'supported', 'disproven'],
     defaultVisibleSecondaryTypes: ['active'],
+    showLogs: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
     ],
@@ -106,6 +115,7 @@ const noteTypeSpecs = [
     label: 'Milestone',
     secondaryTypes: ['open', 'failed', 'soso'],
     defaultVisibleSecondaryTypes: ['open'],
+    showLogs: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -156,6 +166,7 @@ const noteTypeSpecs = [
     primaryType: 'source',
     label: 'Source',
     secondaryTypes: ['book', 'article', 'blog', 'video', 'software', 'misc'],
+    showLogs: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -172,6 +183,22 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'story',
     label: 'Story',
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Title', required: true),
+      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
+    ],
+  ),
+  // Never browsed as its own list (showInLists: false) and never created via
+  // the generic title-only createFromSpec — `createdAt` needs to be stamped
+  // at creation time, so it goes through NoteIndexNotifier.createLog instead
+  // (see the `hypothesis` branch in _AddScreenState._createNote for the same
+  // pattern). Always created attached to a hypothesis/source/milestone via
+  // the relationship flow (see those specs' `log` relationship and
+  // `lib/widgets/logs_section.dart`), never standalone.
+  NoteTypeSpec(
+    primaryType: 'log',
+    label: 'Log',
+    showInLists: false,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),

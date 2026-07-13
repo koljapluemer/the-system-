@@ -154,6 +154,30 @@ void main() {
       expect(result, contains('d.json'));
     });
 
+    test('accepts a well-formed log note', () async {
+      final index = NoteIndex(entries: {
+        'log1.json': {
+          'primaryType': 'log',
+          'title': 'Checked in',
+          'content': 'still going',
+          'createdAt': '2026-07-13T10:30:00.000',
+          'rels': [
+            ['seeAlso', 'other.json'],
+          ],
+        },
+      });
+      final result = await service.findInvalid(index);
+      expect(result, isNot(contains('log1.json')));
+    });
+
+    test('flags a log note missing the required createdAt field', () async {
+      final index = NoteIndex(entries: {
+        'log2.json': {'primaryType': 'log', 'title': 'Checked in'},
+      });
+      final result = await service.findInvalid(index);
+      expect(result, contains('log2.json'));
+    });
+
     test('flags an unknown primaryType', () async {
       final index = NoteIndex(entries: {
         'e.json': {'primaryType': 'contact', 'title': 'E'},

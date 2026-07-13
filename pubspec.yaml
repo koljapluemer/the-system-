@@ -41,6 +41,7 @@ dependencies:
   path: ^1.9.1
   flutter_markdown_plus: ^1.0.7
   json_schema: ^5.2.2
+  intl: ^0.20.3
 
 dev_dependencies:
   flutter_test:

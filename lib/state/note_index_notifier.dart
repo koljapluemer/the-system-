@@ -65,6 +65,26 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
     return filename;
   }
 
+  /// Creates a new `primaryType: "log"` note, stamped with the current
+  /// moment as `createdAt` (ISO 8601) — a generic title-only
+  /// [createFromSpec] create can't set that, so this is used instead (see
+  /// the `hypothesis` branch alongside it in `_AddScreenState._createNote`).
+  /// Always reached via the relationship-attach flow from a
+  /// hypothesis/source/milestone note, never as a standalone create.
+  Future<String> createLog({required String title}) async {
+    final folder = (await ref.read(dataFolderProvider.future))!;
+    final content = <String, dynamic>{
+      'primaryType': 'log',
+      'title': title,
+      'content': '',
+      'createdAt': DateTime.now().toIso8601String(),
+    };
+    final filename =
+        await ref.read(notesServiceProvider).createNote(folder, content, slugSource: title);
+    await update((index) => index.copyWith(entries: {...index.entries, filename: content}));
+    return filename;
+  }
+
   /// Creates a new note of [spec]'s primaryType with [title] and an empty
   /// string for every other field in [spec.fields] (e.g. `content`), for the
   /// "new note" action on a type's Lists screen. [secondaryType], when given,

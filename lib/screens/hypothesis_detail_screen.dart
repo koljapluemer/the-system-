@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/note_file.dart';
 import '../state/note_index_notifier.dart';
 import '../widgets/array_list_section.dart';
+import '../widgets/logs_section.dart';
 
 /// Detail/edit view for a single hypothesis: four free-text logs (Context,
 /// Experiment, Notes, Findings) plus the active -> supported/disproven
@@ -27,7 +28,8 @@ class HypothesisDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final note = ref.watch(noteIndexProvider).value?.entries[filename];
+    final index = ref.watch(noteIndexProvider).value;
+    final note = index?.entries[filename];
 
     if (note == null) {
       return Scaffold(
@@ -82,7 +84,8 @@ class HypothesisDetailScreen extends ConsumerWidget {
             items: note.stringList('findings'),
             onChanged: (items) => _updateList(ref, note, 'findings', items),
           ),
-          const SizedBox(height: 8),
+          LogsSection(filename: filename, note: note, index: index!),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(

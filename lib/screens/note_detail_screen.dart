@@ -9,6 +9,7 @@ import '../state/note_index_notifier.dart';
 import '../state/secondary_type_session.dart';
 import '../widgets/array_list_section.dart';
 import '../widgets/inline_editable_text.dart';
+import '../widgets/logs_section.dart';
 import '../widgets/relationship_dialog.dart';
 import '../widgets/undo_snackbar.dart';
 import 'note_editor_navigation.dart';
@@ -196,7 +197,12 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
   /// relationship type. Followed by "quick add" buttons for
   /// [NoteTypeSpec.quickRelationshipTypes] and a catch-all "Add Other".
   Widget _relationshipsSection(BuildContext context, NoteFile note, NoteIndex index) {
-    final rels = note.stringPairList('rels');
+    // `log` rels get their own dedicated, chronologically-sorted display
+    // (see [LogsSection]) for types that opt into it, so they're left out
+    // here to avoid showing every log twice.
+    final rels = widget.spec.showLogs
+        ? note.stringPairList('rels').where((r) => r[0] != 'log').toList()
+        : note.stringPairList('rels');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -347,6 +353,10 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                     ],
                   ),
                   const SizedBox(height: 16),
+                  if (widget.spec.showLogs) ...[
+                    LogsSection(filename: widget.filename, note: note, index: index),
+                    const SizedBox(height: 16),
+                  ],
                   _relationshipsSection(context, note, index),
                 ],
               ),

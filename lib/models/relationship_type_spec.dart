@@ -37,6 +37,7 @@ const _allPrimaryTypes = [
   'source',
   'entity',
   'story',
+  'log',
 ];
 
 /// The relType of the universal "See Also" relationship, always offered as
@@ -63,5 +64,11 @@ const relationshipTypeSpecs = [
     label: 'See Also',
     buttonLabel: 'Add See Also',
     allowedPrimaryTypes: _allPrimaryTypes,
+  ),
+  RelationshipTypeSpec(
+    relType: 'log',
+    label: 'Log',
+    buttonLabel: 'Add Log',
+    allowedPrimaryTypes: ['log'],
   ),
 ];
