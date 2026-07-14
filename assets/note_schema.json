@@ -25,6 +25,10 @@
       "description": "Alternate names for this note.",
       "type": "array",
       "items": { "type": "string" }
+    },
+    "extraData": {
+      "description": "Arbitrary nested props imported from Obsidian frontmatter (see the \"Add props from Obsidian\" action on a note's view screen), preserved as-is. Not otherwise read or written by the app.",
+      "type": "object"
     }
   },
   "oneOf": [
@@ -38,6 +42,7 @@
         "aliases": { "$ref": "#/definitions/aliases" },
         "body": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title", "body"],
@@ -54,6 +59,7 @@
         "content": { "type": "string" },
         "image": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title", "content"],
@@ -76,7 +82,8 @@
         "experiment": { "type": "array", "items": { "type": "string" } },
         "notes": { "type": "array", "items": { "type": "string" } },
         "findings": { "type": "array", "items": { "type": "string" } },
-        "rels": { "$ref": "#/definitions/rels" }
+        "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" }
       },
       "required": ["primaryType", "title"],
       "additionalProperties": false
@@ -96,6 +103,7 @@
           "defaultVisible": ["open"]
         },
         "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title"],
@@ -115,6 +123,7 @@
           "type": "string"
         },
         "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title", "createdAt"],
@@ -130,6 +139,7 @@
         "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title"],
@@ -145,6 +155,7 @@
         "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title"],
@@ -160,6 +171,7 @@
         "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title"],
@@ -175,6 +187,7 @@
         "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title"],
@@ -190,6 +203,7 @@
         "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title"],
@@ -209,6 +223,7 @@
           "enum": ["book", "article", "blog", "video", "software", "misc"]
         },
         "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title"],
@@ -224,6 +239,7 @@
         "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title"],
@@ -239,6 +255,7 @@
         "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title"],
@@ -258,7 +275,8 @@
           "description": "Serialized fsrs.Card learning data (see lib/services/fsrs_service.dart), absent until the card is first practiced in the Memorize flow.",
           "type": ["object", "null"]
         },
-        "rels": { "$ref": "#/definitions/rels" }
+        "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" }
       },
       "required": ["primaryType", "title", "front", "back"],
       "additionalProperties": false

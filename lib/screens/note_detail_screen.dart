@@ -10,6 +10,7 @@ import '../state/secondary_type_session.dart';
 import '../widgets/array_list_section.dart';
 import '../widgets/inline_editable_text.dart';
 import '../widgets/logs_section.dart';
+import '../widgets/obsidian_import_dialog.dart';
 import '../widgets/relationship_dialog.dart';
 import '../widgets/undo_snackbar.dart';
 import 'note_editor_navigation.dart';
@@ -222,7 +223,16 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
   Widget build(BuildContext context) {
     final asyncIndex = ref.watch(noteIndexProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(widget.spec.label)),
+      appBar: AppBar(
+        title: Text(widget.spec.label),
+        actions: [
+          IconButton(
+            tooltip: 'Add props from Obsidian',
+            icon: const Icon(Icons.data_object),
+            onPressed: () => showObsidianImportDialog(context, ref, filename: widget.filename),
+          ),
+        ],
+      ),
       body: asyncIndex.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Failed to load note: $error')),

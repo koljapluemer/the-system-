@@ -5,6 +5,7 @@ import '../models/note_file.dart';
 import '../state/note_index_notifier.dart';
 import '../widgets/array_list_section.dart';
 import '../widgets/logs_section.dart';
+import '../widgets/obsidian_import_dialog.dart';
 
 /// Detail/edit view for a single hypothesis: four free-text logs (Context,
 /// Experiment, Notes, Findings) plus the active -> supported/disproven
@@ -58,7 +59,16 @@ class HypothesisDetailScreen extends ConsumerWidget {
     final resolved = secondaryType != 'active';
 
     return Scaffold(
-      appBar: AppBar(title: Text(title.isEmpty ? filename : title)),
+      appBar: AppBar(
+        title: Text(title.isEmpty ? filename : title),
+        actions: [
+          IconButton(
+            tooltip: 'Add props from Obsidian',
+            icon: const Icon(Icons.data_object),
+            onPressed: () => showObsidianImportDialog(context, ref, filename: filename),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
