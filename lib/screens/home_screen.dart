@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'add_screen.dart';
-import 'art_triage_screen.dart';
 import 'floating_notes_screen.dart';
 import 'folder_setup_screen.dart';
 import 'hypotheses_screen.dart';
 import 'invalid_json_screen.dart';
+import 'memorize_screen.dart';
 import 'note_type_list_screen.dart';
 import 'scratchpad_triage_screen.dart';
 import '../models/note_type_spec.dart';
@@ -23,7 +23,7 @@ class _NavLink {
 // so new links just get added here.
 const _links = [
   _NavLink('scratchpad-triage', 'Scratchpad Triage'),
-  _NavLink('art-triage', 'Art Triage'),
+  _NavLink('memorize', 'Memorize'),
   _NavLink('floating-notes', 'Floating Notes'),
   _NavLink('hypotheses', 'Hypotheses'),
 ];
@@ -38,10 +38,10 @@ class HomeScreen extends ConsumerWidget {
           context,
           MaterialPageRoute(builder: (_) => const ScratchpadTriageScreen()),
         );
-      case 'art-triage':
+      case 'memorize':
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const ArtTriageScreen()),
+          MaterialPageRoute(builder: (_) => const MemorizeScreen()),
         );
       case 'floating-notes':
         Navigator.push(

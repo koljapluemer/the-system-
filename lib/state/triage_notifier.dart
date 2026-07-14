@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/note_file.dart';
+import '../models/note_index.dart';
 import '../widgets/undo_snackbar.dart';
 import 'note_index_notifier.dart';
 import 'providers.dart';
@@ -46,6 +47,13 @@ abstract class TriageNotifier extends Notifier<TriageState> {
 
   String get primaryType;
 
+  /// Filenames to browse once the primary untriaged queue is exhausted,
+  /// picked from at random (with replacement) indefinitely instead of
+  /// settling into the terminal "all caught up" state. Empty by default —
+  /// subclasses opt in (see [ArtTriageNotifier]) when "nothing left to
+  /// triage" should fall back to idle browsing rather than stopping.
+  List<String> fallbackPool(NoteIndex index) => const [];
+
   @override
   TriageState build() {
     // Watched purely as a rebuild trigger: if the user switches the data
@@ -75,6 +83,22 @@ abstract class TriageNotifier extends Notifier<TriageState> {
     final queue = [...state.queue];
     final filename = _popRandom(queue);
     if (filename == null) {
+      final index = ref.read(noteIndexProvider).value;
+      final fallback = index == null ? const <String>[] : fallbackPool(index);
+      if (fallback.isNotEmpty) {
+        final picked = fallback[_random.nextInt(fallback.length)];
+        final note = index!.entries[picked];
+        if (note != null) {
+          if (!ref.mounted || generation != _generation) return;
+          state = state.copyWith(
+            queue: queue,
+            loading: false,
+            currentFilename: picked,
+            currentNote: note,
+          );
+          return;
+        }
+      }
       if (!ref.mounted || generation != _generation) return;
       state = state.copyWith(queue: queue, loading: false, clearCurrent: true);
       return;

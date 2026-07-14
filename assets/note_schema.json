@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "The System note file",
-  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: scratchpad, art, hypothesis, milestone, gestalt, context, ifThen, description, quote, source, entity, story, or log.",
+  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: scratchpad, art, hypothesis, milestone, gestalt, context, ifThen, description, quote, source, entity, story, log, or flashcard.",
   "definitions": {
     "rels": {
       "description": "Relationships to other note files, e.g. [\"source\", \"other-note.json\"].",
@@ -242,6 +242,25 @@
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Flashcard notes: a front/back pair reviewed by the Memorize flow using FSRS spaced-repetition scheduling.",
+      "showInLists": true,
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "flashcard" },
+        "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
+        "front": { "type": "string" },
+        "back": { "type": "string" },
+        "fsrs": {
+          "description": "Serialized fsrs.Card learning data (see lib/services/fsrs_service.dart), absent until the card is first practiced in the Memorize flow.",
+          "type": ["object", "null"]
+        },
+        "rels": { "$ref": "#/definitions/rels" }
+      },
+      "required": ["primaryType", "title", "front", "back"],
       "additionalProperties": false
     }
   ]

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 /// A label + value display with a pencil button that swaps it into a
 /// TextField with confirm/cancel, mirroring the per-item edit affordance in
-/// [ArrayListSection] so both feel like one consistent pattern.
+/// [ArrayListSection] so both feel like one consistent pattern. The value is
+/// rendered as markdown whenever it isn't being edited.
 class InlineEditableText extends StatefulWidget {
   final String label;
   final String value;
@@ -91,7 +93,7 @@ class _InlineEditableTextState extends State<InlineEditableText> {
                     children: [
                       Text(widget.label, style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 4),
-                      Text(widget.value.isEmpty ? '—' : widget.value),
+                      MarkdownBody(data: widget.value.isEmpty ? '—' : widget.value),
                     ],
                   ),
                 ),

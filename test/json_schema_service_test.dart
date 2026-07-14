@@ -178,6 +178,67 @@ void main() {
       expect(result, contains('log2.json'));
     });
 
+    test('accepts a well-formed new flashcard note with no fsrs data yet', () async {
+      final index = NoteIndex(entries: {
+        'fc1.json': {
+          'primaryType': 'flashcard',
+          'title': 'Capital of France',
+          'front': 'What is the capital of France?',
+          'back': 'Paris',
+        },
+      });
+      final result = await service.findInvalid(index);
+      expect(result, isNot(contains('fc1.json')));
+    });
+
+    test('accepts a well-formed flashcard note with fsrs learning data', () async {
+      final index = NoteIndex(entries: {
+        'fc2.json': {
+          'primaryType': 'flashcard',
+          'title': 'Capital of Japan',
+          'front': 'What is the capital of Japan?',
+          'back': 'Tokyo',
+          'fsrs': {
+            'cardId': 1,
+            'state': 2,
+            'step': null,
+            'stability': 5.2,
+            'difficulty': 4.1,
+            'due': '2026-07-20T10:30:00.000Z',
+            'lastReview': '2026-07-14T10:30:00.000Z',
+          },
+        },
+      });
+      final result = await service.findInvalid(index);
+      expect(result, isNot(contains('fc2.json')));
+    });
+
+    test('flags a flashcard note missing the required back field', () async {
+      final index = NoteIndex(entries: {
+        'fc3.json': {
+          'primaryType': 'flashcard',
+          'title': 'Incomplete',
+          'front': 'Only a front',
+        },
+      });
+      final result = await service.findInvalid(index);
+      expect(result, contains('fc3.json'));
+    });
+
+    test('flags a flashcard note with unexpected extra fields', () async {
+      final index = NoteIndex(entries: {
+        'fc4.json': {
+          'primaryType': 'flashcard',
+          'title': 'Extra',
+          'front': 'front',
+          'back': 'back',
+          'unexpected': 'field',
+        },
+      });
+      final result = await service.findInvalid(index);
+      expect(result, contains('fc4.json'));
+    });
+
     test('flags an unknown primaryType', () async {
       final index = NoteIndex(entries: {
         'e.json': {'primaryType': 'contact', 'title': 'E'},

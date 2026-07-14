@@ -38,6 +38,7 @@ const _allPrimaryTypes = [
   'entity',
   'story',
   'log',
+  'flashcard',
 ];
 
 /// The relType of the universal "See Also" relationship, always offered as

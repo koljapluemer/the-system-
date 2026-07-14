@@ -204,4 +204,16 @@ const noteTypeSpecs = [
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
     ],
   ),
+  // fsrs learning data (see lib/services/fsrs_service.dart) is deliberately
+  // left out of `fields`, the same way hypothesis excludes its arrays: it's
+  // managed by the Memorize flow directly, not the generic merge-on-save.
+  NoteTypeSpec(
+    primaryType: 'flashcard',
+    label: 'Flashcard',
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Title', required: true),
+      NoteFieldSpec(key: 'front', label: 'Front', multiline: true, required: true),
+      NoteFieldSpec(key: 'back', label: 'Back', multiline: true, required: true),
+    ],
+  ),
 ];
