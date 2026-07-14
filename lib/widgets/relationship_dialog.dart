@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/note_file.dart';
 import '../screens/add_screen.dart';
 import '../state/note_index_notifier.dart';
 
@@ -10,7 +9,8 @@ import '../state/note_index_notifier.dart';
 /// built-in similar-notes suggestions double as the search for an existing
 /// note to attach, and typing a new title falls back to creating one —
 /// restricted to [allowedPrimaryTypes], locked to a single type when only
-/// one is allowed. Either path writes the relationship via [_attach] and
+/// one is allowed. Either path writes the relationship (and its mirror, if
+/// any — see [NoteIndexNotifier.attachRelationship]) via [attach] and
 /// returns to the originating note.
 Future<void> showRelationshipDialog(
   BuildContext context,
@@ -20,16 +20,11 @@ Future<void> showRelationshipDialog(
   required List<String> allowedPrimaryTypes,
   required String dialogTitle,
 }) {
-  Future<void> attach(String relatedFilename) async {
-    final notifier = ref.read(noteIndexProvider.notifier);
-    final note = ref.read(noteIndexProvider).value?.entries[filename];
-    if (note == null) return;
-    final rels = [
-      for (final rel in note.stringPairList('rels')) rel,
-      [relType, relatedFilename],
-    ];
-    await notifier.write(filename, {...note, 'rels': rels});
-  }
+  Future<void> attach(String relatedFilename) => ref.read(noteIndexProvider.notifier).attachRelationship(
+        filename: filename,
+        relType: relType,
+        relatedFilename: relatedFilename,
+      );
 
   return Navigator.push(
     context,

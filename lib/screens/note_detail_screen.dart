@@ -18,12 +18,12 @@ import 'note_editor_navigation.dart';
 /// pencil button to inline-edit each, aliases likewise behind a pencil
 /// toggle, plus a unified relationship list (any `[relType, filename]` rel,
 /// labeled by type) with "quick add" buttons per [NoteTypeSpec
-/// .quickRelationshipTypes], a catch-all "Add Other" picker for every other
-/// registered relationship type, and — always last — a "See Also" button
-/// (allowed for every primaryType, so it's never listed in the "Add Other"
-/// picker; it's already on every note). Reached from every type's Lists
-/// screen via [pushNoteEditor], and as the Import Obs Flow's post-create
-/// screen.
+/// .quickRelationshipTypes], and — always last — a "See Also" button
+/// (allowed for every primaryType). Attaching/detaching a relationship also
+/// mirrors it onto the related note where applicable (see
+/// [NoteIndexNotifier.attachRelationship]/`detachRelationship`). Reached
+/// from every type's Lists screen via [pushNoteEditor], and as the Import
+/// Obs Flow's post-create screen.
 class NoteDetailScreen extends ConsumerStatefulWidget {
   final NoteTypeSpec spec;
   final String filename;
@@ -58,29 +58,26 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
         .write(widget.filename, {...note, 'aliases': aliases});
   }
 
-  /// Removes [rel] from the note's `rels` without touching the related note
-  /// itself, offering an Undo that re-attaches it.
+  /// Removes [rel] from the note's `rels`, also removing the mirrored rel
+  /// from the related note if [rel]'s relType is mirrored (see
+  /// [NoteIndexNotifier.detachRelationship]), offering an Undo that
+  /// re-attaches both sides.
   Future<void> _detachRel(
     BuildContext context,
-    NoteFile note,
     List<String> rel,
     String relatedTitle,
   ) async {
     final notifier = ref.read(noteIndexProvider.notifier);
-    final rels = note.stringPairList('rels').where((r) => r != rel).toList();
-    await notifier.write(widget.filename, {...note, 'rels': rels});
+    await notifier.detachRelationship(filename: widget.filename, rel: rel);
     if (!context.mounted) return;
     showUndoSnackBar(
       context,
       message: 'Detached "$relatedTitle"',
-      onUndo: () async {
-        final current = ref.read(noteIndexProvider).value?.entries[widget.filename];
-        if (current == null) return;
-        await notifier.write(widget.filename, {
-          ...current,
-          'rels': [...current.stringPairList('rels'), rel],
-        });
-      },
+      onUndo: () => notifier.attachRelationship(
+        filename: widget.filename,
+        relType: rel[0],
+        relatedFilename: rel[1],
+      ),
     );
   }
 
@@ -89,15 +86,13 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
   /// re-attaches it.
   Future<void> _deleteRelated(
     BuildContext context,
-    NoteFile note,
     List<String> rel,
     String relatedTitle,
   ) async {
     final notifier = ref.read(noteIndexProvider.notifier);
     final relatedFilename = rel[1];
     final relatedNote = ref.read(noteIndexProvider).value?.entries[relatedFilename];
-    final rels = note.stringPairList('rels').where((r) => r != rel).toList();
-    await notifier.write(widget.filename, {...note, 'rels': rels});
+    await notifier.detachRelationship(filename: widget.filename, rel: rel);
     await notifier.delete(relatedFilename);
     if (!context.mounted) return;
     showUndoSnackBar(
@@ -150,52 +145,10 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
   RelationshipTypeSpec _quickSpec(String relType) =>
       relationshipTypeSpecs.firstWhere((s) => s.relType == relType);
 
-  void _showAddOtherPicker(BuildContext context) {
-    final offered = {...widget.spec.quickRelationshipTypes, seeAlsoRelType};
-    final other = [for (final s in relationshipTypeSpecs) if (!offered.contains(s.relType)) s];
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Add Relationship'),
-        content: SizedBox(
-          width: 360,
-          child: other.isEmpty
-              ? const Text('No other relationship types available.')
-              : ListView(
-                  shrinkWrap: true,
-                  children: [
-                    for (final s in other)
-                      ListTile(
-                        title: Text(s.label),
-                        onTap: () {
-                          Navigator.pop(dialogContext);
-                          showRelationshipDialog(
-                            context,
-                            ref,
-                            filename: widget.filename,
-                            relType: s.relType,
-                            allowedPrimaryTypes: s.allowedPrimaryTypes,
-                            dialogTitle: s.buttonLabel,
-                          );
-                        },
-                      ),
-                  ],
-                ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
-  }
-
   /// The unified relationship list: every `[relType, filename]` rel
   /// regardless of type, in `rels` array order, each row labeled by its
   /// relationship type. Followed by "quick add" buttons for
-  /// [NoteTypeSpec.quickRelationshipTypes] and a catch-all "Add Other".
+  /// [NoteTypeSpec.quickRelationshipTypes] and the "See Also" button.
   Widget _relationshipsSection(BuildContext context, NoteFile note, NoteIndex index) {
     // `log` rels get their own dedicated, chronologically-sorted display
     // (see [LogsSection]) for types that opt into it, so they're left out
@@ -218,14 +171,12 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
             onJumpTo: index.entries.containsKey(rel[1]) ? () => _jumpTo(context, index, rel[1]) : null,
             onDetach: () => _detachRel(
               context,
-              note,
               rel,
               index.entries[rel[1]]?['title'] as String? ?? rel[1],
             ),
             onDelete: index.entries.containsKey(rel[1])
                 ? () => _deleteRelated(
                       context,
-                      note,
                       rel,
                       index.entries[rel[1]]?['title'] as String? ?? rel[1],
                     )
@@ -249,11 +200,6 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                   dialogTitle: _quickSpec(relType).buttonLabel,
                 ),
               ),
-            OutlinedButton.icon(
-              icon: const Icon(Icons.add_link),
-              label: const Text('Add Other'),
-              onPressed: () => _showAddOtherPicker(context),
-            ),
             OutlinedButton.icon(
               icon: const Icon(Icons.add_link),
               label: Text(_quickSpec(seeAlsoRelType).buttonLabel),

@@ -24,7 +24,7 @@ class NoteTypeSpec {
 
   /// relType keys (must exist in [relationshipTypeSpecs]) rendered as
   /// dedicated "quick add" buttons on this type's [NoteDetailScreen],
-  /// alongside the always-present "Add Other" button. Empty by default — opt
+  /// alongside the always-present "See Also" button. Empty by default — opt
   /// in per type as relationship conventions get established.
   final List<String> quickRelationshipTypes;
 
@@ -124,6 +124,7 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'gestalt',
     label: 'Gestalt',
+    quickRelationshipTypes: ['description'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -132,6 +133,7 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'context',
     label: 'Context',
+    quickRelationshipTypes: ['ifThen'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -140,7 +142,7 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'ifThen',
     label: 'If/Then',
-    quickRelationshipTypes: ['source', 'evidence'],
+    quickRelationshipTypes: ['source', 'evidence', 'context'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -149,6 +151,7 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'description',
     label: 'Description',
+    quickRelationshipTypes: ['gestalt', 'evidence'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -157,6 +160,7 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'quote',
     label: 'Quote',
+    quickRelationshipTypes: ['source', 'entity'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -167,6 +171,7 @@ const noteTypeSpecs = [
     label: 'Source',
     secondaryTypes: ['book', 'article', 'blog', 'video', 'software', 'misc'],
     showLogs: true,
+    quickRelationshipTypes: ['source', 'entity'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -183,6 +188,7 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'story',
     label: 'Story',
+    quickRelationshipTypes: ['source', 'entity'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
