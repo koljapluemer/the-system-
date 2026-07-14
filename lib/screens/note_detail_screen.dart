@@ -8,6 +8,7 @@ import '../models/relationship_type_spec.dart';
 import '../state/note_index_notifier.dart';
 import '../state/secondary_type_session.dart';
 import '../widgets/array_list_section.dart';
+import '../widgets/change_type_dialog.dart';
 import '../widgets/inline_editable_text.dart';
 import '../widgets/logs_section.dart';
 import '../widgets/obsidian_import_dialog.dart';
@@ -226,6 +227,16 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
       appBar: AppBar(
         title: Text(widget.spec.label),
         actions: [
+          IconButton(
+            tooltip: 'Change Type',
+            icon: const Icon(Icons.swap_horiz),
+            onPressed: () => showChangeTypeDialog(
+              context,
+              ref,
+              filename: widget.filename,
+              currentSpec: widget.spec,
+            ),
+          ),
           IconButton(
             tooltip: 'Add props from Obsidian',
             icon: const Icon(Icons.data_object),

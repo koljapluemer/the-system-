@@ -6,6 +6,17 @@ import '../models/note_type_spec.dart';
 import '../models/relationship_type_spec.dart';
 import 'providers.dart';
 
+/// Properties allowed by assets/note_schema.json for a primaryType that
+/// aren't already covered by [NoteTypeSpec.fields], because they're managed
+/// by a dedicated flow rather than the generic edit form (see the
+/// `hypothesis`/`log`/`flashcard` entries in note_type_spec.dart). Consulted
+/// by [NoteIndexNotifier.changePrimaryType] to know what to keep.
+const _extraKeysOutsideFields = <String, List<String>>{
+  'hypothesis': ['context', 'experiment', 'notes', 'findings'],
+  'log': ['createdAt'],
+  'flashcard': ['fsrs'],
+};
+
 /// The app-wide cache of every note in the data folder. Built once per
 /// folder by scanning disk (see [NotesService.scanNotes]), then kept in sync
 /// in memory as the app itself writes/deletes/creates notes — this app is
@@ -184,6 +195,48 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
   Future<void> refresh() async {
     ref.invalidateSelf();
     await future;
+  }
+
+  /// Converts `filename`'s note to [newSpec]'s primaryType in place, so it
+  /// keeps matching assets/note_schema.json (`additionalProperties: false`)
+  /// for its new shape: keeps fields common to every type (title, aliases,
+  /// rels, extraData) plus any field whose key exists in both the old and
+  /// new type (e.g. `content` surviving an art→gestalt switch), drops
+  /// everything else unique to the old type, and fills any of [newSpec]'s
+  /// fields still missing with `''`. `secondaryType` and `triaged` are kept
+  /// only when the new type still allows them (dropped, not remapped, if the
+  /// old value isn't one of [newSpec.secondaryTypes]). A few types carry
+  /// fields outside [NoteTypeSpec.fields] by design (see the primaryType
+  /// switch below and the `hypothesis`/`log`/`flashcard` entries in
+  /// note_type_spec.dart) — those are preserved/stamped the same way.
+  Future<void> changePrimaryType({required String filename, required NoteTypeSpec newSpec}) async {
+    final index = await future;
+    final note = index.entries[filename];
+    if (note == null) return;
+
+    final allowedKeys = {
+      'primaryType', 'title', 'aliases', 'rels', 'extraData',
+      if (newSpec.primaryType != 'hypothesis' && newSpec.primaryType != 'flashcard') 'triaged',
+      if (newSpec.secondaryTypes.isNotEmpty) 'secondaryType',
+      for (final field in newSpec.fields) field.key,
+      ...?_extraKeysOutsideFields[newSpec.primaryType],
+    };
+
+    final updated = <String, dynamic>{...note}
+      ..removeWhere((key, _) => !allowedKeys.contains(key));
+    updated['primaryType'] = newSpec.primaryType;
+    if (updated['secondaryType'] is String &&
+        !newSpec.secondaryTypes.contains(updated['secondaryType'])) {
+      updated.remove('secondaryType');
+    }
+    for (final field in newSpec.fields) {
+      updated[field.key] ??= '';
+    }
+    if (newSpec.primaryType == 'log') {
+      updated['createdAt'] ??= DateTime.now().toIso8601String();
+    }
+
+    await write(filename, updated);
   }
 }
 
