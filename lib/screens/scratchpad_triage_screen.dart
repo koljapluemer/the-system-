@@ -27,7 +27,10 @@ class ScratchpadTriageScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Center(child: _buildBody(context, state, notifier)),
+      body: SafeArea(
+        minimum: const EdgeInsets.only(bottom: 88),
+        child: _buildBody(context, state, notifier),
+      ),
     );
   }
 
@@ -37,15 +40,17 @@ class ScratchpadTriageScreen extends ConsumerWidget {
     ScratchpadTriageNotifier notifier,
   ) {
     if (state.loading) {
-      return const CircularProgressIndicator();
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (state.currentNote == null) {
-      return const Padding(
-        padding: EdgeInsets.all(32),
-        child: Text(
-          'All caught up — no more scratchpad notes to triage.',
-          textAlign: TextAlign.center,
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: Text(
+            'All caught up — no more scratchpad notes to triage.',
+            textAlign: TextAlign.center,
+          ),
         ),
       );
     }
@@ -54,30 +59,38 @@ class ScratchpadTriageScreen extends ConsumerWidget {
     final title = note['title'] as String? ?? '(untitled)';
     final body = note['body'] as String? ?? '';
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 560),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Card(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: Theme.of(context).textTheme.titleMedium),
-                    const SizedBox(height: 12),
-                    Text(body, style: Theme.of(context).textTheme.bodyMedium),
-                  ],
+    return Column(
+      children: [
+        Expanded(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, style: Theme.of(context).textTheme.titleMedium),
+                        const SizedBox(height: 12),
+                        Text(body, style: Theme.of(context).textTheme.bodyMedium),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-            Row(
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: Row(
               children: [
                 Expanded(
                   child: FilledButton.icon(
@@ -105,9 +118,9 @@ class ScratchpadTriageScreen extends ConsumerWidget {
                 ),
               ],
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

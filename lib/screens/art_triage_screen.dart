@@ -33,7 +33,10 @@ class ArtTriageScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Center(child: _buildBody(context, state, notifier, folder)),
+      body: SafeArea(
+        minimum: const EdgeInsets.only(bottom: 88),
+        child: _buildBody(context, state, notifier, folder),
+      ),
     );
   }
 
@@ -44,15 +47,17 @@ class ArtTriageScreen extends ConsumerWidget {
     String? folder,
   ) {
     if (state.loading) {
-      return const CircularProgressIndicator();
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (state.currentNote == null) {
-      return const Padding(
-        padding: EdgeInsets.all(32),
-        child: Text(
-          'All caught up — no more art to triage.',
-          textAlign: TextAlign.center,
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: Text(
+            'All caught up — no more art to triage.',
+            textAlign: TextAlign.center,
+          ),
         ),
       );
     }
@@ -61,38 +66,56 @@ class ArtTriageScreen extends ConsumerWidget {
     final title = note['title'] as String? ?? '(untitled)';
     final content = note['content'] as String? ?? '';
     final image = note['image'] as String?;
+    // Cap extreme-portrait images so they can't push the action buttons
+    // off-screen; the surrounding scroll view is a safety net for anything
+    // still too tall (e.g. very long markdown).
+    final maxImageHeight = MediaQuery.sizeOf(context).height * 0.5;
 
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 560),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Card(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: Theme.of(context).textTheme.titleMedium),
-                    if (image != null && folder != null) ...[
-                      const SizedBox(height: 12),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: Image.file(File(p.join(folder, 'media', image))),
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    MarkdownBody(data: content),
-                  ],
+    return Column(
+      children: [
+        Expanded(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, style: Theme.of(context).textTheme.titleMedium),
+                        if (image != null && folder != null) ...[
+                          const SizedBox(height: 12),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(maxHeight: maxImageHeight),
+                              child: Image.file(
+                                File(p.join(folder, 'media', image)),
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        MarkdownBody(data: content),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-            Row(
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: Row(
               children: [
                 Expanded(
                   child: FilledButton.icon(
@@ -120,9 +143,9 @@ class ArtTriageScreen extends ConsumerWidget {
                 ),
               ],
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }
