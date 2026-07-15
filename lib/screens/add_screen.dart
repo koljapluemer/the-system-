@@ -7,6 +7,7 @@ import '../models/note_search.dart';
 import '../models/note_type_spec.dart';
 import '../state/add_type_usage_notifier.dart';
 import '../state/note_index_notifier.dart';
+import '../state/recent_history_notifier.dart';
 import '../state/secondary_type_session.dart';
 import 'note_detail_screen.dart';
 import 'note_editor_navigation.dart';
@@ -152,8 +153,12 @@ class _AddScreenState extends ConsumerState<AddScreen> {
 
   Future<void> _addAndShow() async {
     final spec = _spec;
+    final title = _titleController.text.trim();
     final filename = await _commit();
     if (filename == null || !mounted) return;
+    ref
+        .read(recentHistoryProvider.notifier)
+        .record(RecentEntry(kind: RecentEntryKind.note, id: filename, label: title));
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => NoteDetailScreen(spec: spec, filename: filename)),

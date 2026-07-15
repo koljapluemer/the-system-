@@ -10,7 +10,9 @@ import '../state/recent_history_notifier.dart';
 /// A horizontally-scrolling row of chips for the most recently opened notes
 /// and flows (see [recentHistoryProvider]) — not literal nav breadcrumbs
 /// (it doesn't show a path/hierarchy), just quick jump-back links. Renders
-/// nothing once history is empty (e.g. right after app start).
+/// nothing once history is empty (e.g. right after app start). Mounted once
+/// by [TheSystemApp]'s `builder`, outside the Navigator, so it stays visible
+/// above every pushed screen rather than being embedded per-screen.
 class RecentBar extends ConsumerWidget {
   const RecentBar({super.key});
 

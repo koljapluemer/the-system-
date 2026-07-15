@@ -9,7 +9,6 @@ import 'note_type_list_screen.dart';
 import '../models/note_type_spec.dart';
 import '../state/note_index_notifier.dart';
 import '../state/providers.dart';
-import '../widgets/recent_bar.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -55,54 +54,47 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Column(
+      body: ListView(
         children: [
-          const RecentBar(),
-          Expanded(
-            child: ListView(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.add),
-                  title: const Text('Add'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AddScreen()),
-                  ),
-                ),
-                const Divider(height: 1),
-                for (final flow in flowSpecs)
-                  ListTile(
-                    title: Text(flow.label),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => pushFlow(context, ref, flow.id),
-                  ),
-                const Divider(height: 1),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
-                  child: Text('Lists'),
-                ),
-                for (final spec in noteTypeSpecs.where((s) => s.showInLists))
-                  ListTile(
-                    title: Text(spec.label),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => NoteTypeListScreen(spec: spec)),
-                    ),
-                  ),
-                const Divider(height: 1),
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
-                  child: Text('Maintenance'),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.rule_folder),
-                  title: const Text('Check for invalid JSON files'),
-                  onTap: () => _checkForInvalidJson(context, ref),
-                ),
-              ],
+          ListTile(
+            leading: const Icon(Icons.add),
+            title: const Text('Add'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddScreen()),
             ),
+          ),
+          const Divider(height: 1),
+          for (final flow in flowSpecs)
+            ListTile(
+              title: Text(flow.label),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => pushFlow(context, ref, flow.id),
+            ),
+          const Divider(height: 1),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Text('Lists'),
+          ),
+          for (final spec in noteTypeSpecs.where((s) => s.showInLists))
+            ListTile(
+              title: Text(spec.label),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => NoteTypeListScreen(spec: spec)),
+              ),
+            ),
+          const Divider(height: 1),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Text('Maintenance'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.rule_folder),
+            title: const Text('Check for invalid JSON files'),
+            onTap: () => _checkForInvalidJson(context, ref),
           ),
         ],
       ),

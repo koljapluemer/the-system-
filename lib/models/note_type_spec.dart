@@ -171,7 +171,7 @@ const noteTypeSpecs = [
     label: 'Source',
     secondaryTypes: ['book', 'article', 'blog', 'video', 'software', 'misc'],
     showLogs: true,
-    quickRelationshipTypes: ['source', 'entity'],
+    quickRelationshipTypes: ['source', 'entity', 'link'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -180,6 +180,7 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'entity',
     label: 'Entity',
+    quickRelationshipTypes: ['link'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -220,6 +221,20 @@ const noteTypeSpecs = [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'front', label: 'Front', multiline: true, required: true),
       NoteFieldSpec(key: 'back', label: 'Back', multiline: true, required: true),
+    ],
+  ),
+  // Never browsed as its own list (showInLists: false) — always created via
+  // the `link` quick relationship on source/entity notes (see
+  // relationship_type_spec.dart) and rendered there as an actual hyperlink
+  // (see NoteDetailScreen._RelationshipRow), title as the link's label and
+  // content as its URL.
+  NoteTypeSpec(
+    primaryType: 'link',
+    label: 'Link',
+    showInLists: false,
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Name', required: true),
+      NoteFieldSpec(key: 'content', label: 'URL', required: true),
     ],
   ),
 ];
