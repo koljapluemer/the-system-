@@ -1,11 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/json_schema_service.dart';
+import '../services/note_search_worker.dart';
 import '../services/notes_service.dart';
 import '../services/settings_service.dart';
 import '../services/storage_permission_service.dart';
 
 final notesServiceProvider = Provider<NotesService>((ref) => const NotesService());
+
+/// Kept alive for the app's lifetime once first used, rather than
+/// respawned per Add-screen visit — the underlying isolate is spawned
+/// lazily on first search, so nothing is paid until similar-notes search is
+/// actually used.
+final noteSearchWorkerProvider = Provider<NoteSearchWorker>((ref) {
+  final worker = NoteSearchWorker();
+  ref.onDispose(worker.dispose);
+  ref.keepAlive();
+  return worker;
+});
 
 final jsonSchemaServiceProvider =
     Provider<JsonSchemaService>((ref) => const JsonSchemaService());

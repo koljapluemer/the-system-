@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/note_file.dart';
 import '../models/note_index.dart';
+import '../models/note_search.dart';
 import '../models/note_type_spec.dart';
 import '../models/relationship_type_spec.dart';
 import 'providers.dart';
@@ -241,3 +242,12 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
 }
 
 final noteIndexProvider = AsyncNotifierProvider<NoteIndexNotifier, NoteIndex>(NoteIndexNotifier.new);
+
+/// [noteIndexProvider]'s entries pre-lowered/pre-tokenized for similar-notes
+/// search (see `NormalizedNote`), recomputed only when the index itself
+/// changes rather than per keystroke — fed to [NoteSearchWorker] by
+/// `add_screen.dart`.
+final normalizedNotesProvider = Provider<List<NormalizedNote>>((ref) {
+  final index = ref.watch(noteIndexProvider).value;
+  return index == null ? const [] : normalizeNotes(index.entries);
+});

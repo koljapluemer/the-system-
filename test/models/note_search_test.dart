@@ -13,10 +13,11 @@ void main() {
       'aliases': ['Skepticism'],
     },
   };
+  final notes = normalizeNotes(entries);
 
   test('exact title match ranks first', () {
     final matches = findSimilarNotes(
-      entries,
+      notes,
       query: 'Skepticism',
       allowedPrimaryTypes: ['gestalt', 'source', 'context'],
     );
@@ -26,7 +27,7 @@ void main() {
 
   test('tolerates a typo via edit-distance similarity', () {
     final matches = findSimilarNotes(
-      entries,
+      notes,
       query: 'Scepticism',
       allowedPrimaryTypes: ['gestalt'],
     );
@@ -36,7 +37,7 @@ void main() {
 
   test('matches on aliases, not just title', () {
     final matches = findSimilarNotes(
-      entries,
+      notes,
       query: 'Skepticism',
       allowedPrimaryTypes: ['context'],
     );
@@ -46,7 +47,7 @@ void main() {
 
   test('respects allowedPrimaryTypes', () {
     final matches = findSimilarNotes(
-      entries,
+      notes,
       query: 'Skepticism',
       allowedPrimaryTypes: ['gestalt'],
     );
@@ -56,7 +57,7 @@ void main() {
 
   test('unrelated titles are excluded', () {
     final matches = findSimilarNotes(
-      entries,
+      notes,
       query: 'Skepticism',
       allowedPrimaryTypes: ['gestalt'],
     );
@@ -70,7 +71,7 @@ void main() {
     };
 
     final matches = findSimilarNotes(
-      manyEntries,
+      normalizeNotes(manyEntries),
       query: 'Topic',
       allowedPrimaryTypes: ['gestalt'],
       limit: 3,
@@ -80,7 +81,7 @@ void main() {
   });
 
   test('empty query returns no matches', () {
-    final matches = findSimilarNotes(entries, query: '', allowedPrimaryTypes: ['gestalt']);
+    final matches = findSimilarNotes(notes, query: '', allowedPrimaryTypes: ['gestalt']);
     expect(matches, isEmpty);
   });
 }

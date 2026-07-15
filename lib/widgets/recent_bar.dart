@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../app.dart';
 import '../models/note_type_spec.dart';
 import '../screens/flow_navigation.dart';
 import '../screens/note_editor_navigation.dart';
@@ -16,16 +17,25 @@ import '../state/recent_history_notifier.dart';
 class RecentBar extends ConsumerWidget {
   const RecentBar({super.key});
 
-  void _open(BuildContext context, WidgetRef ref, RecentEntry entry) {
+  static String _truncate(String label) =>
+      label.length > 12 ? '${label.substring(0, 12)}…' : label;
+
+  void _open(WidgetRef ref, RecentEntry entry) {
+    // RecentBar sits outside the Navigator MaterialApp builds internally, so
+    // pushing with this widget's own context would find no Navigator
+    // ancestor. Use the app-wide navigatorKey's context instead.
+    final navContext = navigatorKey.currentContext;
+    if (navContext == null) return;
+
     if (entry.kind == RecentEntryKind.flow) {
-      pushFlow(context, ref, entry.id);
+      pushFlow(navContext, ref, entry.id);
       return;
     }
 
     final note = ref.read(noteIndexProvider).value?.entries[entry.id];
     if (note == null) return; // note was deleted since it was last opened
     final spec = noteTypeSpecs.firstWhere((s) => s.primaryType == note['primaryType']);
-    pushNoteEditor(context, spec: spec, filename: entry.id);
+    pushNoteEditor(navContext, spec: spec, filename: entry.id);
   }
 
   @override
@@ -50,8 +60,8 @@ class RecentBar extends ConsumerWidget {
               entry.kind == RecentEntryKind.flow ? Icons.bolt_outlined : Icons.description_outlined,
               size: 18,
             ),
-            label: Text(entry.label),
-            onPressed: () => _open(context, ref, entry),
+            label: Text(_truncate(entry.label)),
+            onPressed: () => _open(ref, entry),
           );
         },
       ),

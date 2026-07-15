@@ -6,6 +6,12 @@ import 'screens/home_screen.dart';
 import 'state/providers.dart';
 import 'widgets/recent_bar.dart';
 
+/// Key for the [Navigator] that [MaterialApp] builds internally. [RecentBar]
+/// is mounted outside that Navigator (see below), so its taps push through
+/// this key's context instead of its own — using its own context would find
+/// no Navigator ancestor and throw.
+final navigatorKey = GlobalKey<NavigatorState>();
+
 class TheSystemApp extends ConsumerWidget {
   const TheSystemApp({super.key});
 
@@ -14,6 +20,7 @@ class TheSystemApp extends ConsumerWidget {
     final dataFolder = ref.watch(dataFolderProvider);
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'The System',
       theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
       // Rendered here, outside the Navigator built by `home`, so it stays

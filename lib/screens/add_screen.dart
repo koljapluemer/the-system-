@@ -7,6 +7,7 @@ import '../models/note_search.dart';
 import '../models/note_type_spec.dart';
 import '../state/add_type_usage_notifier.dart';
 import '../state/note_index_notifier.dart';
+import '../state/providers.dart';
 import '../state/recent_history_notifier.dart';
 import '../state/secondary_type_session.dart';
 import 'note_detail_screen.dart';
@@ -88,17 +89,48 @@ class _AddScreenState extends ConsumerState<AddScreen> {
   String? _secondaryType;
   bool _saving = false;
 
+  /// Debounced similar-notes results for the current title text (see
+  /// [_onTitleChanged]) — searched off the UI thread via
+  /// [noteSearchWorkerProvider], since a synchronous per-keystroke scan
+  /// over a large note collection would block the frame.
+  List<NoteMatch> _suggestions = const [];
+  Timer? _searchDebounce;
+  var _searchGeneration = 0;
+  late final ProviderSubscription<List<NormalizedNote>> _notesSubscription;
+
   @override
   void initState() {
     super.initState();
     _resetSecondaryType();
+    _titleController.addListener(_onTitleChanged);
+    _notesSubscription = ref.listenManual(normalizedNotesProvider, (_, next) {
+      ref.read(noteSearchWorkerProvider).updateNotes(next);
+    }, fireImmediately: true);
   }
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
+    _titleController.removeListener(_onTitleChanged);
+    _notesSubscription.close();
     _titleController.dispose();
     _titleFocusNode.dispose();
     super.dispose();
+  }
+
+  void _onTitleChanged() {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 250), _runSearch);
+  }
+
+  Future<void> _runSearch() async {
+    final query = _titleController.text;
+    final generation = ++_searchGeneration;
+    final matches = query.trim().isEmpty
+        ? const <NoteMatch>[]
+        : await ref.read(noteSearchWorkerProvider).search(query, _allowedTypes);
+    if (!mounted || generation != _searchGeneration) return;
+    setState(() => _suggestions = matches);
   }
 
   NoteTypeSpec get _spec => noteTypeSpecs.firstWhere((s) => s.primaryType == _primaryType);
@@ -202,15 +234,6 @@ class _AddScreenState extends ConsumerState<AddScreen> {
         .take(3)
         .toList();
 
-    final index = ref.watch(noteIndexProvider).value;
-    final suggestions = index == null
-        ? const <NoteMatch>[]
-        : findSimilarNotes(
-            index.entries,
-            query: _titleController.text,
-            allowedPrimaryTypes: _allowedTypes,
-          );
-
     return Scaffold(
       appBar: AppBar(title: Text(widget.appBarTitle)),
       body: ConstrainedBox(
@@ -281,12 +304,11 @@ class _AddScreenState extends ConsumerState<AddScreen> {
                   border: OutlineInputBorder(),
                   alignLabelWithHint: true,
                 ),
-                onChanged: (_) => setState(() {}),
               ),
-              if (suggestions.isNotEmpty) ...[
+              if (_suggestions.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text('Similar notes', style: Theme.of(context).textTheme.labelMedium),
-                for (final match in suggestions)
+                for (final match in _suggestions)
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     dense: true,
