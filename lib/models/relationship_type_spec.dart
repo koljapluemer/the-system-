@@ -46,6 +46,8 @@ const _allPrimaryTypes = [
   'log',
   'flashcard',
   'link',
+  'project',
+  'do',
 ];
 
 /// The relType of the universal "See Also" relationship, always offered as

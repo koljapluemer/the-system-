@@ -262,6 +262,46 @@
       "additionalProperties": false
     },
     {
+      "description": "Project notes: a project tracked by status.",
+      "showInLists": true,
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "project" },
+        "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
+        "content": { "type": "string" },
+        "secondaryType": {
+          "type": "string",
+          "enum": ["idea", "active", "abandoned", "frozen"]
+        },
+        "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Do notes: an actionable item tracked by status.",
+      "showInLists": true,
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "do" },
+        "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
+        "content": { "type": "string" },
+        "secondaryType": {
+          "type": "string",
+          "enum": ["idea", "started", "done", "wont"]
+        },
+        "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title"],
+      "additionalProperties": false
+    },
+    {
       "description": "Flashcard notes: a front/back pair reviewed by the Memorize flow using FSRS spaced-repetition scheduling.",
       "showInLists": true,
       "type": "object",

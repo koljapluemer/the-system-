@@ -211,6 +211,24 @@ const noteTypeSpecs = [
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
     ],
   ),
+  NoteTypeSpec(
+    primaryType: 'project',
+    label: 'Project',
+    secondaryTypes: ['idea', 'active', 'abandoned', 'frozen'],
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Title', required: true),
+      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
+    ],
+  ),
+  NoteTypeSpec(
+    primaryType: 'do',
+    label: 'Do',
+    secondaryTypes: ['idea', 'started', 'done', 'wont'],
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Title', required: true),
+      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
+    ],
+  ),
   // fsrs learning data (see lib/services/fsrs_service.dart) is deliberately
   // left out of `fields`, the same way hypothesis excludes its arrays: it's
   // managed by the Memorize flow directly, not the generic merge-on-save.
