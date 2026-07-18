@@ -13,6 +13,7 @@ import '../widgets/change_type_dialog.dart';
 import '../widgets/inline_editable_text.dart';
 import '../widgets/logs_section.dart';
 import '../widgets/obsidian_import_dialog.dart';
+import '../widgets/questions_section.dart';
 import '../widgets/relationship_dialog.dart';
 import '../widgets/undo_snackbar.dart';
 import 'note_editor_navigation.dart';
@@ -59,6 +60,12 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
     return ref
         .read(noteIndexProvider.notifier)
         .write(widget.filename, {...note, 'aliases': aliases});
+  }
+
+  Future<void> _saveQuestions(NoteFile note, Map<String, dynamic> questions) {
+    return ref
+        .read(noteIndexProvider.notifier)
+        .write(widget.filename, {...note, 'questions': questions});
   }
 
   /// Removes [rel] from the note's `rels`, also removing the mirrored rel
@@ -326,6 +333,13 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                   const SizedBox(height: 16),
                   if (widget.spec.showLogs) ...[
                     LogsSection(filename: widget.filename, note: note, index: index),
+                    const SizedBox(height: 16),
+                  ],
+                  if (widget.spec.showQuestions) ...[
+                    QuestionsSection(
+                      questions: note.questionsMap,
+                      onChanged: (q) => _saveQuestions(note, q),
+                    ),
                     const SizedBox(height: 16),
                   ],
                   _relationshipsSection(context, note, index),

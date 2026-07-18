@@ -66,6 +66,13 @@ class NoteTypeSpec {
   /// `relationship_type_spec.dart`.
   final bool showLogs;
 
+  /// Whether this type's view screen renders a dedicated "Questions" section
+  /// (see `lib/widgets/questions_section.dart`): the Netting-flow
+  /// question/answer pairs stored in the note's `questions` field, each
+  /// editable and deletable. False by default — opt in per type, alongside a
+  /// `questions` property on that type in `note_schema.json`.
+  final bool showQuestions;
+
   const NoteTypeSpec({
     required this.primaryType,
     required this.label,
@@ -75,6 +82,7 @@ class NoteTypeSpec {
     this.defaultVisibleSecondaryTypes = const [],
     this.showInLists = true,
     this.showLogs = false,
+    this.showQuestions = false,
   });
 }
 
@@ -143,6 +151,7 @@ const noteTypeSpecs = [
     primaryType: 'ifThen',
     label: 'If/Then',
     quickRelationshipTypes: ['source', 'evidence', 'context'],
+    showQuestions: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -152,6 +161,7 @@ const noteTypeSpecs = [
     primaryType: 'description',
     label: 'Description',
     quickRelationshipTypes: ['gestalt', 'evidence'],
+    showQuestions: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),

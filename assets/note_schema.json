@@ -29,6 +29,16 @@
     "extraData": {
       "description": "Arbitrary nested props imported from Obsidian frontmatter (see the \"Add props from Obsidian\" action on a note's view screen), preserved as-is. Not otherwise read or written by the app.",
       "type": "object"
+    },
+    "questions": {
+      "description": "Netting-flow question/answer pairs, keyed by the (plaintext) question text. Value is the free-text answer, or literally false if the question was marked not relevant, so Netting skips it for this note from then on.",
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "string" },
+          { "const": false }
+        ]
+      }
     }
   },
   "oneOf": [
@@ -172,7 +182,8 @@
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
         "extraData": { "$ref": "#/definitions/extraData" },
-        "triaged": { "$ref": "#/definitions/triaged" }
+        "triaged": { "$ref": "#/definitions/triaged" },
+        "questions": { "$ref": "#/definitions/questions" }
       },
       "required": ["primaryType", "title"],
       "additionalProperties": false
@@ -188,7 +199,8 @@
         "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
         "extraData": { "$ref": "#/definitions/extraData" },
-        "triaged": { "$ref": "#/definitions/triaged" }
+        "triaged": { "$ref": "#/definitions/triaged" },
+        "questions": { "$ref": "#/definitions/questions" }
       },
       "required": ["primaryType", "title"],
       "additionalProperties": false

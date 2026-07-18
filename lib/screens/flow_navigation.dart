@@ -5,6 +5,7 @@ import '../state/recent_history_notifier.dart';
 import 'floating_notes_screen.dart';
 import 'hypotheses_screen.dart';
 import 'memorize_screen.dart';
+import 'netting_screen.dart';
 import 'scratchpad_triage_screen.dart';
 
 /// Describes one top-level flow, reachable from [HomeScreen]'s link list and
@@ -49,6 +50,12 @@ final flowSpecs = [
     label: 'Hypotheses',
     icon: Icons.science_outlined,
     builder: (_) => const HypothesesScreen(),
+  ),
+  FlowSpec(
+    id: 'netting',
+    label: 'Netting',
+    icon: Icons.help_outline,
+    builder: (_) => const NettingScreen(),
   ),
 ];
 

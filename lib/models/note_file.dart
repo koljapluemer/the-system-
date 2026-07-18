@@ -25,3 +25,18 @@ extension NoteFileArrays on NoteFile {
     ];
   }
 }
+
+/// Defensive read of `questions`-shaped fields: a map of question text to
+/// either a free-text answer or `false` (marked not relevant). Non-object
+/// values and entries with the wrong key/value type are dropped, matching
+/// [NoteFileArrays]'s conventions.
+extension NoteFileQuestions on NoteFile {
+  Map<String, dynamic> get questionsMap {
+    final raw = this['questions'];
+    if (raw is! Map) return {};
+    return {
+      for (final e in raw.entries)
+        if (e.key is String && (e.value is String || e.value == false)) e.key as String: e.value,
+    };
+  }
+}

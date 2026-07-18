@@ -239,6 +239,76 @@ void main() {
       expect(result, contains('fc4.json'));
     });
 
+    test('accepts an ifThen note with answered and not-relevant questions', () async {
+      final index = NoteIndex(entries: {
+        'q1.json': {
+          'primaryType': 'ifThen',
+          'title': 'Q1',
+          'content': 'if X then Y',
+          'questions': {
+            'Why must this be true?': 'Because of Z.',
+            'What is implied?': false,
+          },
+        },
+      });
+      final result = await service.findInvalid(index);
+      expect(result, isNot(contains('q1.json')));
+    });
+
+    test('accepts a description note with answered and not-relevant questions', () async {
+      final index = NoteIndex(entries: {
+        'q2.json': {
+          'primaryType': 'description',
+          'title': 'Q2',
+          'content': 'a shape',
+          'questions': {'What exactly is this?': 'A shape.', 'Where does this lead?': false},
+        },
+      });
+      final result = await service.findInvalid(index);
+      expect(result, isNot(contains('q2.json')));
+    });
+
+    test('flags an ifThen note whose questions field has a true value', () async {
+      final index = NoteIndex(entries: {
+        'q3.json': {
+          'primaryType': 'ifThen',
+          'title': 'Q3',
+          'content': 'if X then Y',
+          'questions': {'Why must this be true?': true},
+        },
+      });
+      final result = await service.findInvalid(index);
+      expect(result, contains('q3.json'));
+    });
+
+    test('flags a description note whose questions field has a nested object value', () async {
+      final index = NoteIndex(entries: {
+        'q4.json': {
+          'primaryType': 'description',
+          'title': 'Q4',
+          'content': 'a shape',
+          'questions': {
+            'What exactly is this?': {'nested': 'object'},
+          },
+        },
+      });
+      final result = await service.findInvalid(index);
+      expect(result, contains('q4.json'));
+    });
+
+    test('flags a scratchpad note that has a questions field (not a schema-owning type)', () async {
+      final index = NoteIndex(entries: {
+        'q5.json': {
+          'primaryType': 'scratchpad',
+          'title': 'Q5',
+          'body': 'body text',
+          'questions': {'Why must this be true?': 'answer'},
+        },
+      });
+      final result = await service.findInvalid(index);
+      expect(result, contains('q5.json'));
+    });
+
     test('flags an unknown primaryType', () async {
       final index = NoteIndex(entries: {
         'e.json': {'primaryType': 'contact', 'title': 'E'},
