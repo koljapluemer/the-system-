@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../state/recent_history_notifier.dart';
 import 'floating_notes_screen.dart';
-import 'hypotheses_screen.dart';
 import 'memorize_screen.dart';
 import 'netting_screen.dart';
 import 'scratchpad_triage_screen.dart';
@@ -44,12 +43,6 @@ final flowSpecs = [
     label: 'Floating Notes',
     icon: Icons.bubble_chart_outlined,
     builder: (_) => const FloatingNotesScreen(),
-  ),
-  FlowSpec(
-    id: 'hypotheses',
-    label: 'Hypotheses',
-    icon: Icons.science_outlined,
-    builder: (_) => const HypothesesScreen(),
   ),
   FlowSpec(
     id: 'netting',

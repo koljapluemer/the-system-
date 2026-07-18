@@ -60,7 +60,6 @@ void main() {
           'title': 'G',
           'secondaryType': 'active',
           'context': ['some context'],
-          'experiment': ['do the thing'],
           'notes': ['a note'],
           'findings': ['a finding'],
         },
@@ -76,13 +75,24 @@ void main() {
           'title': 'H',
           'secondaryType': 'active',
           'context': <String>[],
-          'experiment': <String>[],
           'notes': <String>[],
           'findings': <String>[],
         },
       });
       final result = await service.findInvalid(index);
       expect(result, isNot(contains('h.json')));
+    });
+
+    test('flags a legacy hypothesis note still carrying the retired experiment field', () async {
+      final index = NoteIndex(entries: {
+        'legacy2.json': {
+          'primaryType': 'hypothesis',
+          'title': 'Legacy2',
+          'experiment': ['do the thing'],
+        },
+      });
+      final result = await service.findInvalid(index);
+      expect(result, contains('legacy2.json'));
     });
 
     test('accepts a hypothesis note with no secondaryType (legacy status field retired)', () async {

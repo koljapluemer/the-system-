@@ -76,7 +76,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Hypotheses tracked through a research workflow: context, experiment, notes, and findings logged as free-text entries, resolved as supported or disproven.",
+      "description": "Hypotheses tracked through a research workflow: context, notes, and findings logged as free-text entries, resolved as supported or disproven.",
       "showInLists": true,
       "type": "object",
       "properties": {
@@ -89,7 +89,6 @@
           "defaultVisible": ["active"]
         },
         "context": { "type": "array", "items": { "type": "string" } },
-        "experiment": { "type": "array", "items": { "type": "string" } },
         "notes": { "type": "array", "items": { "type": "string" } },
         "findings": { "type": "array", "items": { "type": "string" } },
         "rels": { "$ref": "#/definitions/rels" },

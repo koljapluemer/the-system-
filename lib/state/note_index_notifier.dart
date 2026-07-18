@@ -10,10 +10,9 @@ import 'providers.dart';
 /// Properties allowed by assets/note_schema.json for a primaryType that
 /// aren't already covered by [NoteTypeSpec.fields], because they're managed
 /// by a dedicated flow rather than the generic edit form (see the
-/// `hypothesis`/`log`/`flashcard` entries in note_type_spec.dart). Consulted
-/// by [NoteIndexNotifier.changePrimaryType] to know what to keep.
+/// `log`/`flashcard` entries in note_type_spec.dart). Consulted by
+/// [NoteIndexNotifier.changePrimaryType] to know what to keep.
 const _extraKeysOutsideFields = <String, List<String>>{
-  'hypothesis': ['context', 'experiment', 'notes', 'findings'],
   'log': ['createdAt'],
   'flashcard': ['fsrs'],
 };
@@ -128,27 +127,6 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
     return null;
   }
 
-  /// Creates a new `primaryType: "hypothesis"` note, active with empty
-  /// context/experiment/notes/findings sections, from the inline add field on
-  /// the Hypotheses screen.
-  Future<String> createHypothesis({required String title}) async {
-    final folder = (await ref.read(dataFolderProvider.future))!;
-    final hypothesisSpec = noteTypeSpecs.firstWhere((s) => s.primaryType == 'hypothesis');
-    final content = <String, dynamic>{
-      'primaryType': 'hypothesis',
-      'title': title,
-      'secondaryType': hypothesisSpec.defaultSecondaryType,
-      'context': <String>[],
-      'experiment': <String>[],
-      'notes': <String>[],
-      'findings': <String>[],
-    };
-    final filename =
-        await ref.read(notesServiceProvider).createNote(folder, content, slugSource: title);
-    await update((index) => index.copyWith(entries: {...index.entries, filename: content}));
-    return filename;
-  }
-
   /// Creates a new `primaryType: "log"` note, stamped with the current
   /// moment as `createdAt` (ISO 8601) — a generic title-only
   /// [createFromSpec] create can't set that, so this is used instead (see
@@ -170,10 +148,11 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
   }
 
   /// Creates a new note of [spec]'s primaryType with [title] and an empty
-  /// string for every other field in [spec.fields] (e.g. `content`), for the
-  /// "new note" action on a type's Lists screen. [secondaryType], when given,
-  /// is stamped onto the note too (the Add screen's secondaryType picker,
-  /// when [spec.secondaryTypes] is non-empty).
+  /// string (or empty list, for [NoteFieldSpec.isArray] fields) for every
+  /// other field in [spec.fields] (e.g. `content`), for the "new note" action
+  /// on a type's Lists screen. [secondaryType], when given, is stamped onto
+  /// the note too (the Add screen's secondaryType picker, when
+  /// [spec.secondaryTypes] is non-empty).
   Future<String> createFromSpec(
     NoteTypeSpec spec, {
     required String title,
@@ -182,7 +161,7 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
     final folder = (await ref.read(dataFolderProvider.future))!;
     final content = <String, dynamic>{'primaryType': spec.primaryType, 'title': title};
     for (final field in spec.fields) {
-      if (field.key != 'title') content[field.key] = '';
+      if (field.key != 'title') content[field.key] = field.isArray ? <String>[] : '';
     }
     if (secondaryType != null) content['secondaryType'] = secondaryType;
     final filename =
@@ -204,12 +183,13 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
   /// rels, extraData) plus any field whose key exists in both the old and
   /// new type (e.g. `content` surviving an art→gestalt switch), drops
   /// everything else unique to the old type, and fills any of [newSpec]'s
-  /// fields still missing with `''`. `secondaryType` and `triaged` are kept
-  /// only when the new type still allows them (dropped, not remapped, if the
-  /// old value isn't one of [newSpec.secondaryTypes]). A few types carry
-  /// fields outside [NoteTypeSpec.fields] by design (see the primaryType
-  /// switch below and the `hypothesis`/`log`/`flashcard` entries in
-  /// note_type_spec.dart) — those are preserved/stamped the same way.
+  /// fields still missing with `''` (or `[]` for [NoteFieldSpec.isArray]
+  /// fields). `secondaryType` and `triaged` are kept only when the new type
+  /// still allows them (dropped, not remapped, if the old value isn't one of
+  /// [newSpec.secondaryTypes]). A few types carry fields outside
+  /// [NoteTypeSpec.fields] by design (see the primaryType switch below and
+  /// the `log`/`flashcard` entries in note_type_spec.dart) — those are
+  /// preserved/stamped the same way.
   Future<void> changePrimaryType({required String filename, required NoteTypeSpec newSpec}) async {
     final index = await future;
     final note = index.entries[filename];
@@ -231,7 +211,7 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
       updated.remove('secondaryType');
     }
     for (final field in newSpec.fields) {
-      updated[field.key] ??= '';
+      updated[field.key] ??= field.isArray ? <String>[] : '';
     }
     if (newSpec.primaryType == 'log') {
       updated['createdAt'] ??= DateTime.now().toIso8601String();

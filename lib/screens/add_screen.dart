@@ -135,16 +135,19 @@ class _AddScreenState extends ConsumerState<AddScreen> {
 
   NoteTypeSpec get _spec => noteTypeSpecs.firstWhere((s) => s.primaryType == _primaryType);
 
-  /// hypothesis is excluded from this even though it now has
-  /// `secondaryTypes` — it bypasses generic creation entirely (see
-  /// [_createNote]) and always starts at its default; there's no "create a
-  /// pre-resolved hypothesis" affordance.
+  /// hypothesis is excluded from this even though it has `secondaryTypes` —
+  /// there's no "create a pre-resolved hypothesis" affordance, so it always
+  /// starts at its default (see [_resetSecondaryType]) with no picker shown.
   bool get _showSecondaryTypePicker => _spec.secondaryTypes.isNotEmpty && _primaryType != 'hypothesis';
 
   void _resetSecondaryType() {
-    _secondaryType = _showSecondaryTypePicker
-        ? ref.read(lastSecondaryTypeProvider.notifier).defaultFor(_spec)
-        : null;
+    if (_showSecondaryTypePicker) {
+      _secondaryType = ref.read(lastSecondaryTypeProvider.notifier).defaultFor(_spec);
+    } else if (_spec.secondaryTypes.isNotEmpty) {
+      _secondaryType = _spec.defaultSecondaryType;
+    } else {
+      _secondaryType = null;
+    }
   }
 
   void _setPrimaryType(String type) {
@@ -154,15 +157,11 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     });
   }
 
-  /// hypothesis needs `secondaryType` + empty log arrays, and log needs an
-  /// automatic `createdAt`, beyond what a generic title-only create covers,
-  /// so both go through a dedicated method instead of
+  /// log needs an automatic `createdAt`, beyond what a generic title-only
+  /// create covers, so it goes through a dedicated method instead of
   /// [NoteIndexNotifier.createFromSpec].
   Future<String> _createNote(String title) {
     final notifier = ref.read(noteIndexProvider.notifier);
-    if (_primaryType == 'hypothesis') {
-      return notifier.createHypothesis(title: title);
-    }
     if (_primaryType == 'log') {
       return notifier.createLog(title: title);
     }

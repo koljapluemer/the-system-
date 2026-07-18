@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:the_system/models/note_type_spec.dart';
 import 'package:the_system/state/note_index_notifier.dart';
 import 'package:the_system/state/providers.dart';
 
@@ -73,18 +74,21 @@ void main() {
     expect(await File('${tempDir.path}/gone.json').exists(), isFalse);
   });
 
-  test('createHypothesis adds an active hypothesis with empty sections', () async {
+  test('createFromSpec creates an active hypothesis with empty sections', () async {
     await container.read(noteIndexProvider.future);
+    final hypothesisSpec = noteTypeSpecs.firstWhere((s) => s.primaryType == 'hypothesis');
 
-    final filename =
-        await container.read(noteIndexProvider.notifier).createHypothesis(title: 'My Hypothesis');
+    final filename = await container.read(noteIndexProvider.notifier).createFromSpec(
+          hypothesisSpec,
+          title: 'My Hypothesis',
+          secondaryType: hypothesisSpec.defaultSecondaryType,
+        );
 
     final index = container.read(noteIndexProvider).value!;
     expect(index.entries[filename]?['primaryType'], 'hypothesis');
     expect(index.entries[filename]?['title'], 'My Hypothesis');
     expect(index.entries[filename]?['secondaryType'], 'active');
     expect(index.entries[filename]?['context'], <String>[]);
-    expect(index.entries[filename]?['experiment'], <String>[]);
     expect(index.entries[filename]?['notes'], <String>[]);
     expect(index.entries[filename]?['findings'], <String>[]);
 

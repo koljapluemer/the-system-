@@ -45,6 +45,10 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
     return ref.read(noteIndexProvider.notifier).write(widget.filename, {...note, key: value});
   }
 
+  Future<void> _saveArrayField(NoteFile note, String key, List<String> items) {
+    return ref.read(noteIndexProvider.notifier).write(widget.filename, {...note, key: items});
+  }
+
   Future<void> _saveSecondaryType(NoteFile note, String? value) {
     final updated = {...note};
     if (value == null) {
@@ -275,12 +279,21 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   for (final field in widget.spec.fields)
-                    InlineEditableText(
-                      label: field.label,
-                      value: note[field.key] as String? ?? '',
-                      multiline: field.multiline,
-                      onSave: (value) => _saveField(note, field.key, value),
-                    ),
+                    field.isArray
+                        ? Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: ArrayListSection(
+                              label: field.label,
+                              items: note.stringList(field.key),
+                              onChanged: (items) => _saveArrayField(note, field.key, items),
+                            ),
+                          )
+                        : InlineEditableText(
+                            label: field.label,
+                            value: note[field.key] as String? ?? '',
+                            multiline: field.multiline,
+                            onSave: (value) => _saveField(note, field.key, value),
+                          ),
                   if (widget.spec.secondaryTypes.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16),

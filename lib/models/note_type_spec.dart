@@ -9,11 +9,17 @@ class NoteFieldSpec {
   final bool multiline;
   final bool required;
 
+  /// Whether this field is a `List<String>` rather than a plain string —
+  /// rendered by [NoteDetailScreen] as an [ArrayListSection] (the same
+  /// widget used for aliases) instead of an inline-editable text field.
+  final bool isArray;
+
   const NoteFieldSpec({
     required this.key,
     required this.label,
     this.multiline = false,
     this.required = false,
+    this.isArray = false,
   });
 }
 
@@ -104,10 +110,6 @@ const noteTypeSpecs = [
       NoteFieldSpec(key: 'image', label: 'Image (filename)'),
     ],
   ),
-  // Only 'title' is exposed here: secondaryType and the context/experiment/
-  // notes/findings arrays are managed by the dedicated Hypotheses flow, not
-  // the generic edit form (which merges only the fields listed here, so
-  // those keys are left untouched by it).
   NoteTypeSpec(
     primaryType: 'hypothesis',
     label: 'Hypothesis',
@@ -116,6 +118,9 @@ const noteTypeSpecs = [
     showLogs: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
+      NoteFieldSpec(key: 'context', label: 'Context', isArray: true),
+      NoteFieldSpec(key: 'notes', label: 'Notes', isArray: true),
+      NoteFieldSpec(key: 'findings', label: 'Findings', isArray: true),
     ],
   ),
   NoteTypeSpec(
@@ -208,10 +213,10 @@ const noteTypeSpecs = [
   // Never browsed as its own list (showInLists: false) and never created via
   // the generic title-only createFromSpec — `createdAt` needs to be stamped
   // at creation time, so it goes through NoteIndexNotifier.createLog instead
-  // (see the `hypothesis` branch in _AddScreenState._createNote for the same
-  // pattern). Always created attached to a hypothesis/source/milestone via
-  // the relationship flow (see those specs' `log` relationship and
-  // `lib/widgets/logs_section.dart`), never standalone.
+  // (see the `log` branch in _AddScreenState._createNote). Always created
+  // attached to a hypothesis/source/milestone via the relationship flow (see
+  // those specs' `log` relationship and `lib/widgets/logs_section.dart`),
+  // never standalone.
   NoteTypeSpec(
     primaryType: 'log',
     label: 'Log',
@@ -240,8 +245,8 @@ const noteTypeSpecs = [
     ],
   ),
   // fsrs learning data (see lib/services/fsrs_service.dart) is deliberately
-  // left out of `fields`, the same way hypothesis excludes its arrays: it's
-  // managed by the Memorize flow directly, not the generic merge-on-save.
+  // left out of `fields` — it's managed by the Memorize flow directly, not
+  // the generic merge-on-save.
   NoteTypeSpec(
     primaryType: 'flashcard',
     label: 'Flashcard',
