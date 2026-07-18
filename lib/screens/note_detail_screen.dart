@@ -196,21 +196,23 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                 : null,
           ),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (final relType in widget.spec.quickRelationshipTypes)
-              OutlinedButton.icon(
-                icon: const Icon(Icons.add_link),
-                label: Text(_quickSpec(relType).buttonLabel),
-                onPressed: () => showRelationshipDialog(
-                  context,
-                  ref,
-                  filename: widget.filename,
-                  relType: relType,
-                  allowedPrimaryTypes: _quickSpec(relType).allowedPrimaryTypes,
-                  dialogTitle: _quickSpec(relType).buttonLabel,
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.add_link),
+                  label: Text(_quickSpec(relType).buttonLabel),
+                  onPressed: () => showRelationshipDialog(
+                    context,
+                    ref,
+                    filename: widget.filename,
+                    relType: relType,
+                    allowedPrimaryTypes: _quickSpec(relType).allowedPrimaryTypes,
+                    dialogTitle: _quickSpec(relType).buttonLabel,
+                  ),
                 ),
               ),
             OutlinedButton.icon(

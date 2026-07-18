@@ -132,7 +132,7 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'gestalt',
     label: 'Gestalt',
-    quickRelationshipTypes: ['description'],
+    quickRelationshipTypes: ['description', 'opposite', 'parent', 'child'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -150,7 +150,7 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'ifThen',
     label: 'If/Then',
-    quickRelationshipTypes: ['source', 'evidence', 'context'],
+    quickRelationshipTypes: ['source', 'evidence', 'context', 'opposite', 'agrees', 'parent', 'child'],
     showQuestions: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
@@ -160,7 +160,7 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'description',
     label: 'Description',
-    quickRelationshipTypes: ['gestalt', 'evidence'],
+    quickRelationshipTypes: ['gestalt', 'evidence', 'opposite', 'agrees', 'parent', 'child'],
     showQuestions: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),

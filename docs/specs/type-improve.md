@@ -14,3 +14,9 @@ Let's improve relationships.
 - stories should allow sources and entities
 
 All relationships should automatically be mirrored, except: logs (we never look at logs, so no need to put relationships on them), see-also. Apart from that, everything should be automatically be added reciprocically, e.g. adding a source to a quote should also add the quote to the source (even if the mirror relationship is not explicitly mentioned above)
+
+## Later additions
+
+- if-then and description also allow: opposite, parent, child, agrees (same allowed target types as evidence: source, quote, if-then, description, story, gestalt)
+- gestalt also allows: opposite, parent, child (not agrees)
+- opposite and agrees are symmetric (mirror onto themselves, like gestalt/description mirror onto each other); parent mirrors as child and vice versa

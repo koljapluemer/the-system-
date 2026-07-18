@@ -136,6 +136,40 @@ const relationshipTypeSpecs = [
     allowedPrimaryTypes: ['ifThen'],
     mirrorRelType: 'context',
   ),
+  // Symmetric, like gestalt/description above but self-mirroring rather than
+  // paired with a distinct relType: attaching `opposite` to a note attaches
+  // `opposite` right back, same as `agrees` below.
+  RelationshipTypeSpec(
+    relType: 'opposite',
+    label: 'Opposite',
+    buttonLabel: 'Add Opposite',
+    allowedPrimaryTypes: _evidencePrimaryTypes,
+    mirrorRelType: 'opposite',
+  ),
+  RelationshipTypeSpec(
+    relType: 'agrees',
+    label: 'Agrees',
+    buttonLabel: 'Add Agrees',
+    allowedPrimaryTypes: _evidencePrimaryTypes,
+    mirrorRelType: 'agrees',
+  ),
+  // parent <-> child: same asymmetric-pair pattern as source/sourceOf, but
+  // both sides are offered as quick buttons since either direction is a
+  // reasonable thing to add from the note in hand.
+  RelationshipTypeSpec(
+    relType: 'parent',
+    label: 'Parent',
+    buttonLabel: 'Add Parent',
+    allowedPrimaryTypes: _evidencePrimaryTypes,
+    mirrorRelType: 'child',
+  ),
+  RelationshipTypeSpec(
+    relType: 'child',
+    label: 'Child',
+    buttonLabel: 'Add Child',
+    allowedPrimaryTypes: _evidencePrimaryTypes,
+    mirrorRelType: 'parent',
+  ),
   RelationshipTypeSpec(
     relType: seeAlsoRelType,
     label: 'See Also',
