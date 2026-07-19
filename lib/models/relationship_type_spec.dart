@@ -48,6 +48,7 @@ const _allPrimaryTypes = [
   'link',
   'project',
   'do',
+  'activity',
 ];
 
 /// The relType of the universal "See Also" relationship, always offered as

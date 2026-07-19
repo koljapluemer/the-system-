@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "The System note file",
-  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: scratchpad, art, hypothesis, milestone, gestalt, context, ifThen, description, quote, source, entity, story, log, flashcard, or link.",
+  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: scratchpad, art, hypothesis, milestone, gestalt, context, ifThen, description, quote, source, entity, story, log, flashcard, link, project, do, or activity.",
   "definitions": {
     "rels": {
       "description": "Relationships to other note files, e.g. [\"source\", \"other-note.json\"].",
@@ -305,6 +305,22 @@
           "type": "string",
           "enum": ["idea", "started", "done", "wont"]
         },
+        "rels": { "$ref": "#/definitions/rels" },
+        "extraData": { "$ref": "#/definitions/extraData" },
+        "triaged": { "$ref": "#/definitions/triaged" }
+      },
+      "required": ["primaryType", "title"],
+      "additionalProperties": false
+    },
+    {
+      "description": "Activity notes: a logged activity worth keeping track of.",
+      "showInLists": true,
+      "type": "object",
+      "properties": {
+        "primaryType": { "const": "activity" },
+        "title": { "type": "string" },
+        "aliases": { "$ref": "#/definitions/aliases" },
+        "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
         "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
