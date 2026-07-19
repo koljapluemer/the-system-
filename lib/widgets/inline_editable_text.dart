@@ -25,6 +25,12 @@ class InlineEditableText extends StatefulWidget {
 
 class _InlineEditableTextState extends State<InlineEditableText> {
   bool _editing = false;
+  // Tracks whether the field should render as multi-line. A field can contain
+  // embedded newlines (e.g. a markdown title) even when [widget.multiline] is
+  // false; forcing such text into a maxLines: 1 TextField breaks caret
+  // positioning and scrolling, since that render path assumes the text never
+  // wraps. So this also flips on whenever the text actually contains '\n'.
+  bool _multiline = false;
   final _controller = TextEditingController();
 
   @override
@@ -35,11 +41,17 @@ class _InlineEditableTextState extends State<InlineEditableText> {
 
   void _startEdit() {
     _controller.text = widget.value;
+    _multiline = widget.multiline || widget.value.contains('\n');
     setState(() => _editing = true);
   }
 
+  void _onChanged(String text) {
+    final multiline = widget.multiline || text.contains('\n');
+    if (multiline != _multiline) setState(() => _multiline = multiline);
+  }
+
   void _confirmEdit() {
-    widget.onSave(widget.multiline ? _controller.text : _controller.text.trim());
+    widget.onSave(_multiline ? _controller.text : _controller.text.trim());
     setState(() => _editing = false);
   }
 
@@ -58,14 +70,15 @@ class _InlineEditableTextState extends State<InlineEditableText> {
                 TextField(
                   controller: _controller,
                   autofocus: true,
-                  minLines: widget.multiline ? 4 : null,
-                  maxLines: widget.multiline ? 12 : 1,
+                  minLines: _multiline ? 4 : null,
+                  maxLines: _multiline ? 12 : 1,
+                  onChanged: _onChanged,
                   decoration: InputDecoration(
                     labelText: widget.label,
                     border: const OutlineInputBorder(),
-                    alignLabelWithHint: widget.multiline,
+                    alignLabelWithHint: _multiline,
                   ),
-                  onSubmitted: widget.multiline ? null : (_) => _confirmEdit(),
+                  onSubmitted: _multiline ? null : (_) => _confirmEdit(),
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,

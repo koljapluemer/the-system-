@@ -404,6 +404,10 @@ class _RelationshipRow extends StatefulWidget {
 
 class _RelationshipRowState extends State<_RelationshipRow> {
   bool _editing = false;
+  // A title can contain embedded newlines (markdown), which breaks caret
+  // positioning/scrolling in a maxLines: 1 TextField, so switch to multi-line
+  // rendering whenever the text actually has one.
+  bool _multiline = false;
   final _controller = TextEditingController();
 
   @override
@@ -414,7 +418,13 @@ class _RelationshipRowState extends State<_RelationshipRow> {
 
   void _startEdit() {
     _controller.text = widget.title;
+    _multiline = widget.title.contains('\n');
     setState(() => _editing = true);
+  }
+
+  void _onChanged(String text) {
+    final multiline = text.contains('\n');
+    if (multiline != _multiline) setState(() => _multiline = multiline);
   }
 
   void _confirmEdit() {
@@ -434,7 +444,10 @@ class _RelationshipRowState extends State<_RelationshipRow> {
               child: TextField(
                 controller: _controller,
                 autofocus: true,
-                onSubmitted: (_) => _confirmEdit(),
+                minLines: _multiline ? 3 : null,
+                maxLines: _multiline ? 8 : 1,
+                onChanged: _onChanged,
+                onSubmitted: _multiline ? null : (_) => _confirmEdit(),
               ),
             ),
             IconButton(
