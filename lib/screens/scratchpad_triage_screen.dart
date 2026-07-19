@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../models/note_type_spec.dart';
 import '../state/scratchpad_triage_notifier.dart';
 import '../state/triage_notifier.dart';
+import '../widgets/change_type_dialog.dart';
+
+final _scratchpadSpec = noteTypeSpecs.firstWhere((s) => s.primaryType == 'scratchpad');
 
 class ScratchpadTriageScreen extends ConsumerWidget {
   const ScratchpadTriageScreen({super.key});
@@ -29,13 +33,14 @@ class ScratchpadTriageScreen extends ConsumerWidget {
       ),
       body: SafeArea(
         minimum: const EdgeInsets.only(bottom: 88),
-        child: _buildBody(context, state, notifier),
+        child: _buildBody(context, ref, state, notifier),
       ),
     );
   }
 
   Widget _buildBody(
     BuildContext context,
+    WidgetRef ref,
     TriageState state,
     ScratchpadTriageNotifier notifier,
   ) {
@@ -94,9 +99,14 @@ class ScratchpadTriageScreen extends ConsumerWidget {
               children: [
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: notifier.keep,
-                    icon: const Icon(Icons.check),
-                    label: const Text('Keep'),
+                    onPressed: () => showChangeTypeDialog(
+                      context,
+                      ref,
+                      filename: state.currentFilename!,
+                      currentSpec: _scratchpadSpec,
+                    ),
+                    icon: const Icon(Icons.swap_horiz),
+                    label: const Text('Change Type'),
                   ),
                 ),
                 const SizedBox(width: 12),

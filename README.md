@@ -6,7 +6,9 @@ A Flutter app for a growing suite of personal-notes flows, backed by a plain fol
 
 - [Flutter SDK](https://docs.flutter.dev/install) (stable channel)
 - Android SDK + NDK (via `flutter doctor` / Android Studio, or a standalone `cmdline-tools` setup) for the Android target
-- Linux desktop build tools: `sudo apt install cmake ninja-build clang libgtk-3-dev`
+- Linux desktop build tools:
+  - Ubuntu: `sudo apt install cmake ninja-build clang libgtk-3-dev`
+  - Fedora: `sudo dnf install cmake ninja-build clang gtk3-devel`
 
 ## Setup
 
@@ -34,9 +36,9 @@ flutter build apk --debug   # debug APK, auto-signed, ready to sideload
 
 Install a built APK: `adb install -r build/app/outputs/flutter-apk/app-debug.apk`
 
-### Installing the Linux build on Ubuntu
+### Installing the Linux build (Ubuntu, Fedora, …)
 
-`flutter build linux` produces a self-contained bundle at `build/linux/x64/release/bundle/` (or `arm64` on ARM). For personal use on a single machine, a `.deb`/AppImage/Snap build is unnecessary ceremony — just install the bundle into your user directory (no `sudo` needed):
+`flutter build linux` produces a self-contained bundle at `build/linux/x64/release/bundle/` (or `arm64` on ARM). For personal use on a single machine, a `.deb`/AppImage/Snap/rpm build is unnecessary ceremony — just install the bundle into your user directory (no `sudo` needed). Same steps on any distro:
 
 ```bash
 flutter build linux --release
