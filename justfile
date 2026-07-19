@@ -7,6 +7,8 @@ dev:
 
 # Build the Linux release bundle and (re)install it into ~/.local, overriding any existing install
 reinstall:
+    #!/usr/bin/env bash
+    set -euo pipefail
     flutter build linux --release
     mkdir -p ~/.local/share/the_system
     cp -r build/linux/x64/release/bundle/* ~/.local/share/the_system/

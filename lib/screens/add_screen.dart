@@ -223,6 +223,13 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     pushNoteEditor(context, spec: spec, filename: match.filename);
   }
 
+  /// Below this body width, similar-notes suggestions are inlined under the
+  /// title field (capped height, own scroll — see [_buildInlineSuggestions]).
+  /// At or above it, there's enough spare horizontal space to give them a
+  /// dedicated sidebar instead of pushing the action buttons down.
+  static const double _wideLayoutBreakpoint = 720;
+  static const double _inlineSuggestionsMaxHeight = 240;
+
   @override
   Widget build(BuildContext context) {
     final usageCounts = ref.watch(addTypeUsageProvider);
@@ -233,121 +240,221 @@ class _AddScreenState extends ConsumerState<AddScreen> {
         .take(3)
         .toList();
 
-    return Scaffold(
-      appBar: AppBar(title: Text(widget.appBarTitle)),
-      body: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 560),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    final formFields = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (topTypes.isNotEmpty) ...[
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              if (topTypes.isNotEmpty) ...[
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final type in topTypes)
-                      ActionChip(
-                        label: Text(
-                          noteTypeSpecs.firstWhere((s) => s.primaryType == type).label,
-                        ),
-                        onPressed: _saving ? null : () => _setPrimaryType(type),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-              ],
-              DropdownButtonFormField<String>(
-                initialValue: _primaryType,
-                decoration: const InputDecoration(
-                  labelText: 'Note type',
-                  border: OutlineInputBorder(),
-                ),
-                items: [
-                  for (final type in _allowedTypes)
-                    DropdownMenuItem(
-                      value: type,
-                      child: Text(noteTypeSpecs.firstWhere((s) => s.primaryType == type).label),
-                    ),
-                ],
-                onChanged: (_saving || _allowedTypes.length == 1)
-                    ? null
-                    : (value) => _setPrimaryType(value!),
-              ),
-              if (_showSecondaryTypePicker) ...[
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  key: ValueKey(_primaryType),
-                  initialValue: _secondaryType,
-                  decoration: const InputDecoration(
-                    labelText: 'Secondary Type',
-                    border: OutlineInputBorder(),
+              for (final type in topTypes)
+                ActionChip(
+                  label: Text(
+                    noteTypeSpecs.firstWhere((s) => s.primaryType == type).label,
                   ),
-                  items: [
-                    for (final type in _spec.secondaryTypes)
-                      DropdownMenuItem(value: type, child: Text(type)),
-                  ],
-                  onChanged: _saving ? null : (value) => setState(() => _secondaryType = value),
+                  onPressed: _saving ? null : () => _setPrimaryType(type),
                 ),
-              ],
-              const SizedBox(height: 16),
-              TextField(
-                controller: _titleController,
-                focusNode: _titleFocusNode,
-                autofocus: true,
-                minLines: 4,
-                maxLines: 12,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  border: OutlineInputBorder(),
-                  alignLabelWithHint: true,
-                ),
-              ),
-              if (_suggestions.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text('Similar notes', style: Theme.of(context).textTheme.labelMedium),
-                for (final match in _suggestions)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
-                    leading: const Icon(Icons.search),
-                    title: Text(match.title.isEmpty ? match.filename : match.title),
-                    subtitle: Text(
-                      noteTypeSpecs.firstWhere((s) => s.primaryType == match.primaryType).label,
-                    ),
-                    onTap: _saving ? null : () => _selectSuggestion(match),
-                  ),
-              ],
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _saving ? null : _addAndNext,
-                      child: const Text('Add & Next'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: _saving ? null : _addAndShow,
-                      child: const Text('Add & Show'),
-                    ),
-                  ),
-                ],
-              ),
-              if (widget.showBackButton) ...[
-                const SizedBox(height: 12),
-                FilledButton.tonal(
-                  onPressed: _saving ? null : _addAndBack,
-                  child: const Text('Add & Back'),
-                ),
-              ],
             ],
           ),
+          const SizedBox(height: 12),
+        ],
+        DropdownButtonFormField<String>(
+          initialValue: _primaryType,
+          decoration: const InputDecoration(
+            labelText: 'Note type',
+            border: OutlineInputBorder(),
+          ),
+          items: [
+            for (final type in _allowedTypes)
+              DropdownMenuItem(
+                value: type,
+                child: Text(noteTypeSpecs.firstWhere((s) => s.primaryType == type).label),
+              ),
+          ],
+          onChanged: (_saving || _allowedTypes.length == 1)
+              ? null
+              : (value) => _setPrimaryType(value!),
         ),
+        if (_showSecondaryTypePicker) ...[
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            key: ValueKey(_primaryType),
+            initialValue: _secondaryType,
+            decoration: const InputDecoration(
+              labelText: 'Secondary Type',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              for (final type in _spec.secondaryTypes)
+                DropdownMenuItem(value: type, child: Text(type)),
+            ],
+            onChanged: _saving ? null : (value) => setState(() => _secondaryType = value),
+          ),
+        ],
+        const SizedBox(height: 16),
+        TextField(
+          controller: _titleController,
+          focusNode: _titleFocusNode,
+          autofocus: true,
+          minLines: 4,
+          maxLines: 12,
+          decoration: const InputDecoration(
+            labelText: 'Title',
+            border: OutlineInputBorder(),
+            alignLabelWithHint: true,
+          ),
+        ),
+      ],
+    );
+
+    final actions = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _saving ? null : _addAndNext,
+                child: const Text('Add & Next'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: FilledButton(
+                onPressed: _saving ? null : _addAndShow,
+                child: const Text('Add & Show'),
+              ),
+            ),
+          ],
+        ),
+        if (widget.showBackButton) ...[
+          const SizedBox(height: 12),
+          FilledButton.tonal(
+            onPressed: _saving ? null : _addAndBack,
+            child: const Text('Add & Back'),
+          ),
+        ],
+      ],
+    );
+
+    return Scaffold(
+      appBar: AppBar(title: Text(widget.appBarTitle)),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide =
+              constraints.maxWidth >= _wideLayoutBreakpoint && _suggestions.isNotEmpty;
+
+          if (!isWide) {
+            return ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    formFields,
+                    if (_suggestions.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      _buildInlineSuggestions(context),
+                    ],
+                    actions,
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 900),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 560),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [formFields, actions],
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  SizedBox(
+                    width: 280,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text('Similar notes', style: Theme.of(context).textTheme.labelMedium),
+                        const SizedBox(height: 4),
+                        Expanded(
+                          child: Card(
+                            margin: EdgeInsets.zero,
+                            child: ListView.builder(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              itemCount: _suggestions.length,
+                              itemBuilder: (context, index) =>
+                                  _buildSuggestionTile(_suggestions[index]),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
+    );
+  }
+
+  /// Suggestions block for the narrow (single-column) layout: capped height
+  /// with its own internal scroll, so a long match list can never push the
+  /// action buttons below it off-screen.
+  Widget _buildInlineSuggestions(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(maxHeight: _inlineSuggestionsMaxHeight),
+      decoration: BoxDecoration(
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+            child: Text('Similar notes', style: Theme.of(context).textTheme.labelMedium),
+          ),
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true,
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              itemCount: _suggestions.length,
+              itemBuilder: (context, index) => _buildSuggestionTile(_suggestions[index]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuggestionTile(NoteMatch match) {
+    return ListTile(
+      dense: true,
+      leading: const Icon(Icons.search),
+      title: Text(match.title.isEmpty ? match.filename : match.title),
+      subtitle: Text(
+        noteTypeSpecs.firstWhere((s) => s.primaryType == match.primaryType).label,
+      ),
+      onTap: _saving ? null : () => _selectSuggestion(match),
     );
   }
 }
