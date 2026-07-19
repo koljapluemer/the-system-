@@ -6,6 +6,7 @@ import 'floating_notes_screen.dart';
 import 'memorize_screen.dart';
 import 'netting_screen.dart';
 import 'scratchpad_triage_screen.dart';
+import 'search_screen.dart';
 
 /// Describes one top-level flow, reachable from [HomeScreen]'s link list and
 /// from the recent-history bar (see RecentBar). Data-driven on purpose: this
@@ -49,6 +50,12 @@ final flowSpecs = [
     label: 'Netting',
     icon: Icons.help_outline,
     builder: (_) => const NettingScreen(),
+  ),
+  FlowSpec(
+    id: 'search',
+    label: 'Search',
+    icon: Icons.search,
+    builder: (_) => const SearchScreen(),
   ),
 ];
 

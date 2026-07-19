@@ -35,6 +35,17 @@ void main() {
     expect(state.first.label, 'A renamed');
   });
 
+  test('a flow entry and a search entry with the same id coexist (different keys)', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final notifier = container.read(recentHistoryProvider.notifier);
+    notifier.record(const RecentEntry(kind: RecentEntryKind.flow, id: 'search', label: 'Search'));
+    notifier.record(const RecentEntry(kind: RecentEntryKind.search, id: 'search', label: 'search'));
+
+    expect(container.read(recentHistoryProvider).length, 2);
+  });
+
   test('caps at maxRecentEntries, dropping the oldest', () {
     final container = ProviderContainer();
     addTearDown(container.dispose);

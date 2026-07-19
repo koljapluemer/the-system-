@@ -1,9 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-enum RecentEntryKind { note, flow }
+enum RecentEntryKind { note, flow, search }
 
-/// One entry in the recent-history bar: either a note (identified by
-/// filename) or a flow (identified by [FlowSpec.id]).
+/// One entry in the recent-history bar: a note (identified by filename), a
+/// flow (identified by [FlowSpec.id]), or a search query (identified by the
+/// query string itself — see `search_navigation.dart`).
 class RecentEntry {
   final RecentEntryKind kind;
   final String id;

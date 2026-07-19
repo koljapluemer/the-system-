@@ -5,6 +5,7 @@ import '../app.dart';
 import '../models/note_type_spec.dart';
 import '../screens/flow_navigation.dart';
 import '../screens/note_editor_navigation.dart';
+import '../screens/search_navigation.dart';
 import '../state/note_index_notifier.dart';
 import '../state/recent_history_notifier.dart';
 
@@ -40,6 +41,10 @@ class RecentBar extends ConsumerWidget {
 
     if (entry.kind == RecentEntryKind.flow) {
       pushFlow(navContext, ref, entry.id);
+      return;
+    }
+    if (entry.kind == RecentEntryKind.search) {
+      pushSearch(navContext, ref, entry.id);
       return;
     }
 
@@ -78,9 +83,11 @@ class RecentBar extends ConsumerWidget {
                   final entry = recent[i];
                   return ActionChip(
                     avatar: Icon(
-                      entry.kind == RecentEntryKind.flow
-                          ? Icons.bolt_outlined
-                          : Icons.description_outlined,
+                      switch (entry.kind) {
+                        RecentEntryKind.flow => Icons.bolt_outlined,
+                        RecentEntryKind.search => Icons.search,
+                        RecentEntryKind.note => Icons.description_outlined,
+                      },
                       size: 18,
                     ),
                     label: Text(_truncate(entry.label)),
