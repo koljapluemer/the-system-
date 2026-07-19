@@ -104,6 +104,7 @@ class ScratchpadTriageScreen extends ConsumerWidget {
                       ref,
                       filename: state.currentFilename!,
                       currentSpec: _scratchpadSpec,
+                      onChanged: notifier.refreshAfterExternalChange,
                     ),
                     icon: const Icon(Icons.swap_horiz),
                     label: const Text('Change Type'),

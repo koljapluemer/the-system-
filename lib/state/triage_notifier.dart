@@ -157,4 +157,14 @@ abstract class TriageNotifier extends Notifier<TriageState> {
   Future<void> defer() async {
     await _loadNext(_generation);
   }
+
+  /// Moves past the current note without touching disk, for when it already
+  /// left this queue's type through some other action (e.g. a type change
+  /// via [showChangeTypeDialog]) rather than one of [keep]/[delete]/[defer].
+  /// Without this, this screen's own state keeps showing the stale note —
+  /// it was already popped from [state.queue] when it became current, and
+  /// this provider isn't rebuilt just by navigating away and back.
+  Future<void> refreshAfterExternalChange() async {
+    await _loadNext(_generation);
+  }
 }
