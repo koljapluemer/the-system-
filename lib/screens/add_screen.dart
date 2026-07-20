@@ -78,6 +78,10 @@ class AddScreen extends ConsumerStatefulWidget {
 class _AddScreenState extends ConsumerState<AddScreen> {
   late final _titleController = TextEditingController(text: widget.initialTitle ?? '');
   final _titleFocusNode = FocusNode();
+  // Preserves the TextField's Element (and its focus) across the narrow/wide
+  // layout swap in build(), which changes the widget tree's shape whenever
+  // _suggestions flips between empty and non-empty.
+  final _titleFieldKey = GlobalKey();
   late final List<String> _allowedTypes = widget.allowedTypes ??
       [for (final spec in noteTypeSpecs) if (spec.showInLists) spec.primaryType];
   late String _primaryType = widget.initialType ??
@@ -294,6 +298,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
         ],
         const SizedBox(height: 16),
         TextField(
+          key: _titleFieldKey,
           controller: _titleController,
           focusNode: _titleFocusNode,
           autofocus: true,

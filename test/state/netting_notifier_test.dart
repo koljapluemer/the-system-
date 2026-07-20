@@ -54,7 +54,7 @@ void main() {
 
   test('picks the only eligible ifThen/description note with an unanswered question', () async {
     await writeFixture('a.json', {'primaryType': 'ifThen', 'title': 'A', 'content': 'if X then Y'});
-    await writeFixture('b.json', {'primaryType': 'scratchpad', 'title': 'B', 'body': 'not eligible'});
+    await writeFixture('b.json', {'primaryType': 'scratchpad', 'title': 'B', 'content': 'not eligible'});
 
     final state = await settle();
     expect(state.loading, isFalse);
@@ -123,7 +123,7 @@ void main() {
   });
 
   test('no eligible notes at all leaves the empty state', () async {
-    await writeFixture('a.json', {'primaryType': 'scratchpad', 'title': 'A', 'body': 'not eligible'});
+    await writeFixture('a.json', {'primaryType': 'scratchpad', 'title': 'A', 'content': 'not eligible'});
 
     final state = await settle();
     expect(state.loading, isFalse);

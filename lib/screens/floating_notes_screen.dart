@@ -73,7 +73,8 @@ class _FloatingNotesScreenState extends ConsumerState<FloatingNotesScreen>
         ? notes
         : notes
             .where((n) =>
-                n.title.toLowerCase().contains(filter) || n.body.toLowerCase().contains(filter))
+                n.title.toLowerCase().contains(filter) ||
+                    n.content.toLowerCase().contains(filter))
             .toList();
     if (pool.isEmpty) return;
 
@@ -108,7 +109,7 @@ class _FloatingNotesScreenState extends ConsumerState<FloatingNotesScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: Text(note.title.isEmpty ? '(untitled)' : note.title),
-        content: SingleChildScrollView(child: Text(note.body)),
+        content: SingleChildScrollView(child: Text(note.content)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
         ],
@@ -161,7 +162,7 @@ class _FloatingNotesScreenState extends ConsumerState<FloatingNotesScreen>
                   const SizedBox(height: 6),
                 ],
                 Text(
-                  card.note.body,
+                  card.note.content,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],

@@ -27,7 +27,7 @@ class FloatingNotesNotifier extends Notifier<FloatingNotesState> {
 final floatingNotesProvider =
     NotifierProvider<FloatingNotesNotifier, FloatingNotesState>(FloatingNotesNotifier.new);
 
-/// Free text filter applied to note title/body; kept separate from the note
+/// Free text filter applied to note title/content; kept separate from the note
 /// pool so typing doesn't re-trigger a disk read.
 class FloatingNotesFilterNotifier extends Notifier<String> {
   @override

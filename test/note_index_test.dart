@@ -91,18 +91,18 @@ void main() {
       expect(index.floatingPool(), isEmpty);
     });
 
-    test('carries title and body through', () {
+    test('carries title and content through', () {
       final index = NoteIndex(entries: {
         's2.json': {
           'primaryType': 'scratchpad',
           'triaged': 'true',
           'title': 'Title',
-          'body': 'Body text',
+          'content': 'Body text',
         },
       });
       final entry = index.floatingPool().first;
       expect(entry.title, 'Title');
-      expect(entry.body, 'Body text');
+      expect(entry.content, 'Body text');
     });
   });
 }

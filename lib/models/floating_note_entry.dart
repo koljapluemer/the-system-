@@ -3,11 +3,11 @@
 class FloatingNoteEntry {
   final String filename;
   final String title;
-  final String body;
+  final String content;
 
   const FloatingNoteEntry({
     required this.filename,
     required this.title,
-    required this.body,
+    required this.content,
   });
 }

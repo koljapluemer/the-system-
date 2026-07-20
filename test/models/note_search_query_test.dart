@@ -13,7 +13,7 @@ void main() {
     'body-match.json': {
       'primaryType': 'scratchpad',
       'title': 'Random title',
-      'body': 'Mentions skepticism deep in the body text.',
+      'content': 'Mentions skepticism deep in the body text.',
     },
     'aliased.json': {
       'primaryType': 'context',
@@ -27,7 +27,7 @@ void main() {
     expect(results.map((r) => r.filename), contains('skepticism.json'));
   });
 
-  test('matches on a non-title field (body/content), not just title', () {
+  test('matches on a non-title field (content), not just title', () {
     final results = searchNotes(entries, 'skepticism');
     expect(results.map((r) => r.filename), contains('body-match.json'));
   });

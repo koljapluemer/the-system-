@@ -104,7 +104,7 @@ const noteTypeSpecs = [
     label: 'Scratchpad',
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
-      NoteFieldSpec(key: 'body', label: 'Body', multiline: true, required: true),
+      NoteFieldSpec(key: 'content', label: 'Content', multiline: true, required: true),
     ],
   ),
   NoteTypeSpec(

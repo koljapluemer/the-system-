@@ -1,6 +1,6 @@
 import 'note_file.dart';
 
-/// A note whose title, body/content, aliases, or any other top-level
+/// A note whose title, content, aliases, or any other top-level
 /// string/string-list field contains the search query (see [searchNotes]).
 class NoteSearchResult {
   final String filename;
@@ -11,10 +11,10 @@ class NoteSearchResult {
 }
 
 /// Case-insensitive substring search across every top-level string and
-/// string-list field of each note in [entries] — title, body/content,
+/// string-list field of each note in [entries] — title, content,
 /// aliases, etc. Unlike [findSimilarNotes] (see `note_search.dart`), this is
 /// plain `contains`, not fuzzy scoring, and scans every field rather than
-/// just title/aliases, so it also matches body/content text. A synchronous
+/// just title/aliases, so it also matches content text. A synchronous
 /// scan is fine: note collections here are personal-scale, and substring
 /// `contains` is far cheaper than the Levenshtein scorer that justified
 /// `NoteSearchWorker`'s isolate for the Add screen.

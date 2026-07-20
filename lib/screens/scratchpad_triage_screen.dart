@@ -62,7 +62,7 @@ class ScratchpadTriageScreen extends ConsumerWidget {
 
     final note = state.currentNote!;
     final title = note['title'] as String? ?? '(untitled)';
-    final body = note['body'] as String? ?? '';
+    final content = note['content'] as String? ?? '';
 
     return Column(
       children: [
@@ -82,7 +82,7 @@ class ScratchpadTriageScreen extends ConsumerWidget {
                       children: [
                         Text(title, style: Theme.of(context).textTheme.titleMedium),
                         const SizedBox(height: 12),
-                        Text(body, style: Theme.of(context).textTheme.bodyMedium),
+                        Text(content, style: Theme.of(context).textTheme.bodyMedium),
                       ],
                     ),
                   ),

@@ -50,12 +50,12 @@
         "primaryType": { "const": "scratchpad" },
         "title": { "type": "string" },
         "aliases": { "$ref": "#/definitions/aliases" },
-        "body": { "type": "string" },
+        "content": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
         "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
       },
-      "required": ["primaryType", "title", "body"],
+      "required": ["primaryType", "title", "content"],
       "additionalProperties": false
     },
     {

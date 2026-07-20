@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../app.dart';
 import '../models/note_type_spec.dart';
+import '../screens/add_screen.dart';
 import '../screens/flow_navigation.dart';
 import '../screens/note_editor_navigation.dart';
 import '../screens/search_navigation.dart';
@@ -33,6 +34,18 @@ class RecentBar extends ConsumerWidget {
     final navContext = _navContext;
     if (navContext == null) return;
     Navigator.popUntil(navContext, (route) => route.isFirst);
+  }
+
+  void _openSearch(WidgetRef ref) {
+    final navContext = _navContext;
+    if (navContext == null) return;
+    pushFlow(navContext, ref, 'search');
+  }
+
+  void _openAdd() {
+    final navContext = _navContext;
+    if (navContext == null) return;
+    Navigator.push(navContext, MaterialPageRoute(builder: (_) => const AddScreen()));
   }
 
   void _open(WidgetRef ref, RecentEntry entry) {
@@ -69,6 +82,16 @@ class RecentBar extends ConsumerWidget {
             tooltip: 'Home',
             icon: const Icon(Icons.home_outlined),
             onPressed: _goHome,
+          ),
+          IconButton(
+            tooltip: 'Search',
+            icon: const Icon(Icons.search),
+            onPressed: () => _openSearch(ref),
+          ),
+          IconButton(
+            tooltip: 'Add',
+            icon: const Icon(Icons.add),
+            onPressed: _openAdd,
           ),
           if (recent.isNotEmpty)
             const VerticalDivider(width: 1, indent: 8, endIndent: 8),

@@ -13,7 +13,7 @@ void main() {
         'b.json': {
           'primaryType': 'scratchpad',
           'title': 'B',
-          'body': 'body text',
+          'content': 'body text',
           'rels': [
             ['source', 'other.json'],
           ],
@@ -156,7 +156,7 @@ void main() {
       expect(result, contains('n.json'));
     });
 
-    test('flags a scratchpad note missing the required body field', () async {
+    test('flags a scratchpad note missing the required content field', () async {
       final index = NoteIndex(entries: {
         'd.json': {'primaryType': 'scratchpad', 'title': 'D'},
       });
@@ -311,7 +311,7 @@ void main() {
         'q5.json': {
           'primaryType': 'scratchpad',
           'title': 'Q5',
-          'body': 'body text',
+          'content': 'body text',
           'questions': {'Why must this be true?': 'answer'},
         },
       });
@@ -338,7 +338,7 @@ void main() {
         'f.json': {
           'primaryType': 'scratchpad',
           'title': 'F',
-          'body': 'body text',
+          'content': 'body text',
           'unexpected': 'field',
         },
       });

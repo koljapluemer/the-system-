@@ -50,7 +50,7 @@ class NoteIndex {
             FloatingNoteEntry(
               filename: e.key,
               title: e.value['title'] as String? ?? '',
-              body: e.value['body'] as String? ?? '',
+              content: e.value['content'] as String? ?? '',
             ),
       ];
 }
