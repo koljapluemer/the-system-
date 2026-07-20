@@ -108,7 +108,7 @@
         "content": { "type": "string" },
         "secondaryType": {
           "type": "string",
-          "enum": ["open", "failed", "soso"],
+          "enum": ["open", "failed", "soso", "success"],
           "defaultVisible": ["open"]
         },
         "rels": { "$ref": "#/definitions/rels" },
@@ -233,6 +233,7 @@
           "type": "string",
           "enum": ["book", "article", "blog", "video", "software", "misc"]
         },
+        "worthCheckingOutAgain": { "type": "boolean" },
         "rels": { "$ref": "#/definitions/rels" },
         "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }

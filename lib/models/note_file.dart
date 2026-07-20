@@ -24,6 +24,14 @@ extension NoteFileArrays on NoteFile {
           entry.cast<String>(),
     ];
   }
+
+  /// Defensive read of a bool-valued field, mirroring [stringList]'s
+  /// convention: a missing key or wrong-type value (e.g. from a
+  /// hand-edited file) degrades to `false` instead of throwing.
+  bool boolValue(String key) {
+    final value = this[key];
+    return value is bool ? value : false;
+  }
 }
 
 /// Defensive read of `questions`-shaped fields: a map of question text to

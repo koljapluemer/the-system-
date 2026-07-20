@@ -14,12 +14,18 @@ class NoteFieldSpec {
   /// widget used for aliases) instead of an inline-editable text field.
   final bool isArray;
 
+  /// Whether this field is a `bool` rather than a plain string — rendered by
+  /// [NoteDetailScreen] as a [CheckboxListTile] instead of an
+  /// inline-editable text field.
+  final bool isBool;
+
   const NoteFieldSpec({
     required this.key,
     required this.label,
     this.multiline = false,
     this.required = false,
     this.isArray = false,
+    this.isBool = false,
   });
 }
 
@@ -126,7 +132,7 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'milestone',
     label: 'Milestone',
-    secondaryTypes: ['open', 'failed', 'soso'],
+    secondaryTypes: ['open', 'failed', 'soso', 'success'],
     defaultVisibleSecondaryTypes: ['open'],
     showLogs: true,
     fields: [
@@ -190,6 +196,7 @@ const noteTypeSpecs = [
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
+      NoteFieldSpec(key: 'worthCheckingOutAgain', label: 'Worth Checking Out Again', isBool: true),
     ],
   ),
   NoteTypeSpec(
