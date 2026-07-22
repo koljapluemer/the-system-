@@ -225,6 +225,14 @@ const noteTypeSpecs = [
     ],
   ),
   NoteTypeSpec(
+    primaryType: 'question',
+    label: 'Question',
+    fields: [
+      NoteFieldSpec(key: 'title', label: 'Title', required: true),
+      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
+    ],
+  ),
+  NoteTypeSpec(
     primaryType: 'project',
     label: 'Project',
     secondaryTypes: ['idea', 'active', 'abandoned', 'frozen'],

@@ -8,8 +8,7 @@ import '../models/note_file.dart';
 import '../models/note_scan_result.dart';
 
 /// Reads/writes/lists/deletes note files that live as flat JSON files
-/// directly inside a single data folder. Mirrors the file-IO command
-/// boundary the Rust backend used to expose over Tauri's invoke bridge.
+/// directly inside a single data folder.
 class NotesService {
   const NotesService();
 
