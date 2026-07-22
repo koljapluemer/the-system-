@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:graphview/GraphView.dart';
 
 import '../models/note_index.dart';
+import '../models/note_search_query.dart';
 import '../models/note_type_spec.dart';
 import '../state/note_index_notifier.dart';
 import 'note_editor_navigation.dart';
@@ -69,8 +71,12 @@ class _LabeledEdgeRenderer extends ArrowEdgeRenderer {
 /// only pair `.builder` with static tree/layered algorithms, never with
 /// force-directed ones. Tapping a node opens the normal (editable) note
 /// screen via [pushNoteEditor] — the same destination every other list in
-/// the app uses — but this screen itself offers no way to add or change a
-/// relationship; that's future work.
+/// the app uses. A search sidebar (inline on wide layouts, an [endDrawer] on
+/// narrow ones — mirroring the wide/narrow split in `add_screen.dart`'s
+/// similar-notes panel) reuses [searchNotes] the same way `search_screen.dart`
+/// does; picking a result re-centers the graph on it instead of opening it,
+/// since re-centering is this screen's own distinct action. Nothing on this
+/// screen edits a note or a relationship; that's future work.
 class GraphViewScreen extends ConsumerStatefulWidget {
   const GraphViewScreen({super.key});
 
@@ -81,15 +87,32 @@ class GraphViewScreen extends ConsumerStatefulWidget {
 class _GraphViewScreenState extends ConsumerState<GraphViewScreen> {
   static const _depth = 2;
 
+  /// Matches `add_screen.dart`'s `_wideLayoutBreakpoint` — same "does a
+  /// sidebar fit next to the main content" call, so it should trip at the
+  /// same width.
+  static const _wideLayoutBreakpoint = 720.0;
+
   final _random = Random();
   final _transformationController = TransformationController();
+  final _searchController = TextEditingController();
   String? _rootFilename;
   Graph? _graph;
   FruchtermanReingoldAlgorithm? _algorithm;
   bool _centered = false;
+  List<NoteSearchResult> _searchResults = const [];
+  Timer? _searchDebounce;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+  }
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
     _transformationController.dispose();
     super.dispose();
   }
@@ -113,9 +136,15 @@ class _GraphViewScreenState extends ConsumerState<GraphViewScreen> {
   void _shuffle(NoteIndex index) {
     final filenames = index.entries.keys.toList();
     if (filenames.isEmpty) return;
-    setState(
-      () => _buildGraphFor(index, filenames[_random.nextInt(filenames.length)]),
-    );
+    _focusOn(index, filenames[_random.nextInt(filenames.length)]);
+  }
+
+  /// Re-centers the graph on [filename] — shared by the shuffle button and
+  /// by picking a sidebar search result, since both are "make this note the
+  /// new root" and should behave identically.
+  void _focusOn(NoteIndex index, String filename) {
+    if (!index.entries.containsKey(filename)) return;
+    setState(() => _buildGraphFor(index, filename));
   }
 
   void _buildGraphFor(NoteIndex index, String root) {
@@ -167,6 +196,18 @@ class _GraphViewScreenState extends ConsumerState<GraphViewScreen> {
     _centered = true;
   }
 
+  void _onSearchChanged() {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 250), _runSearch);
+  }
+
+  void _runSearch() {
+    final entries = ref.read(noteIndexProvider).value?.entries ?? const {};
+    final results = searchNotes(entries, _searchController.text);
+    if (!mounted) return;
+    setState(() => _searchResults = results);
+  }
+
   Widget _buildNode(BuildContext context, Node node, NoteIndex index) {
     final filename = node.key!.value as String;
     final note = index.entries[filename];
@@ -209,9 +250,149 @@ class _GraphViewScreenState extends ConsumerState<GraphViewScreen> {
     );
   }
 
+  Widget _buildGraphArea(BuildContext context, NoteIndex index) {
+    final graph = _graph;
+    final algorithm = _algorithm;
+    if (graph == null || algorithm == null) {
+      return const Center(child: Text('Nothing to show'));
+    }
+
+    final rootTitle =
+        index.entries[_rootFilename]?['title'] as String? ?? _rootFilename;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Centered on: $rootTitle',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          ),
+        ),
+        // A graph with exactly one node and no edges crashes
+        // FruchtermanReingoldAlgorithm (see GraphViewScreen's doc) — and
+        // there's nothing for a force-directed layout to do with one node
+        // anyway, so skip GraphView entirely for this note (no resolvable
+        // rels within the index).
+        if (graph.nodes.length <= 1)
+          Expanded(
+            child: Center(
+              child: graph.nodes.isEmpty
+                  ? const Text('Nothing to show')
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildNode(context, graph.nodes.first, index),
+                        const SizedBox(height: 8),
+                        Text(
+                          'No relationships found',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+            ),
+          )
+        else
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                WidgetsBinding.instance.addPostFrameCallback(
+                  (_) => _centerIfNeeded(graph, constraints.biggest),
+                );
+                return InteractiveViewer(
+                  transformationController: _transformationController,
+                  constrained: false,
+                  boundaryMargin: const EdgeInsets.all(2000),
+                  minScale: 0.05,
+                  maxScale: 4,
+                  child: GraphView(
+                    graph: graph,
+                    algorithm: algorithm,
+                    animated: false,
+                    paint: Paint()
+                      ..color = Theme.of(context).colorScheme.outline
+                      ..strokeWidth = 1.5
+                      ..style = PaintingStyle.stroke,
+                    builder: (node) => _buildNode(context, node, index),
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// The search sidebar: a text field plus its live results, reusing
+  /// [searchNotes] exactly as `search_screen.dart` does. [inDrawer] is true
+  /// only when this is rendered inside the narrow layout's [Drawer] — in
+  /// that case picking a result also closes the drawer, via a [context] that
+  /// (unlike this build method's own) is actually a descendant of the
+  /// [Scaffold], so [Navigator.pop] can find it.
+  Widget _buildSidebar(BuildContext context, NoteIndex index, {required bool inDrawer}) {
+    return SafeArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+            child: TextField(
+              controller: _searchController,
+              autofocus: inDrawer,
+              textInputAction: TextInputAction.search,
+              decoration: const InputDecoration(
+                labelText: 'Search notes',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+            ),
+          ),
+          Expanded(
+            child: _buildSearchResults(context, inDrawer: inDrawer),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchResults(BuildContext context, {required bool inDrawer}) {
+    if (_searchController.text.trim().isEmpty) {
+      return const Center(child: Text('Type to search.'));
+    }
+    if (_searchResults.isEmpty) {
+      return const Center(child: Text('No matches.'));
+    }
+    return ListView.separated(
+      itemCount: _searchResults.length,
+      separatorBuilder: (_, _) => const Divider(height: 1),
+      itemBuilder: (context, i) {
+        final result = _searchResults[i];
+        return ListTile(
+          dense: true,
+          selected: result.filename == _rootFilename,
+          title: Text(result.title.isEmpty ? result.filename : result.title),
+          subtitle: Text(_specsByType[result.primaryType]?.label ?? result.primaryType),
+          onTap: () {
+            final currentIndex = ref.read(noteIndexProvider).value;
+            if (currentIndex == null) return;
+            _focusOn(currentIndex, result.filename);
+            if (inDrawer) Navigator.pop(context);
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final indexAsync = ref.watch(noteIndexProvider);
+    // Decided up front (rather than via a body-level LayoutBuilder, as
+    // add_screen.dart uses) because it also gates whether Scaffold.endDrawer
+    // is set at all, and that has to be known before body layout runs.
+    final isWide = MediaQuery.sizeOf(context).width >= _wideLayoutBreakpoint;
 
     return Scaffold(
       appBar: AppBar(
@@ -226,6 +407,14 @@ class _GraphViewScreenState extends ConsumerState<GraphViewScreen> {
           ),
         ],
       ),
+      endDrawer: isWide || indexAsync.value == null
+          ? null
+          : Drawer(
+              child: Builder(
+                builder: (drawerContext) =>
+                    _buildSidebar(drawerContext, indexAsync.value!, inDrawer: true),
+              ),
+            ),
       body: indexAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Failed to load notes: $e')),
@@ -234,77 +423,16 @@ class _GraphViewScreenState extends ConsumerState<GraphViewScreen> {
             return const Center(child: Text('No notes yet'));
           }
           _ensureGraph(index);
-          final graph = _graph;
-          final algorithm = _algorithm;
-          if (graph == null || algorithm == null) {
-            return const Center(child: Text('Nothing to show'));
-          }
+          final graphArea = _buildGraphArea(context, index);
 
-          final rootTitle =
-              index.entries[_rootFilename]?['title'] as String? ??
-              _rootFilename;
-          return Column(
+          if (!isWide) return graphArea;
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Centered on: $rootTitle',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                ),
-              ),
-              // A graph with exactly one node and no edges crashes
-              // FruchtermanReingoldAlgorithm (see GraphViewScreen's doc) —
-              // and there's nothing for a force-directed layout to do with
-              // one node anyway, so skip GraphView entirely for this note
-              // (no resolvable rels within the index).
-              if (graph.nodes.length <= 1)
-                Expanded(
-                  child: Center(
-                    child: graph.nodes.isEmpty
-                        ? const Text('Nothing to show')
-                        : Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _buildNode(context, graph.nodes.first, index),
-                              const SizedBox(height: 8),
-                              Text(
-                                'No relationships found',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                  ),
-                )
-              else
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      WidgetsBinding.instance.addPostFrameCallback(
-                        (_) => _centerIfNeeded(graph, constraints.biggest),
-                      );
-                      return InteractiveViewer(
-                        transformationController: _transformationController,
-                        constrained: false,
-                        boundaryMargin: const EdgeInsets.all(2000),
-                        minScale: 0.05,
-                        maxScale: 4,
-                        child: GraphView(
-                          graph: graph,
-                          algorithm: algorithm,
-                          animated: false,
-                          paint: Paint()
-                            ..color = Theme.of(context).colorScheme.outline
-                            ..strokeWidth = 1.5
-                            ..style = PaintingStyle.stroke,
-                          builder: (node) => _buildNode(context, node, index),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+              Expanded(child: graphArea),
+              const VerticalDivider(width: 1),
+              SizedBox(width: 300, child: _buildSidebar(context, index, inDrawer: false)),
             ],
           );
         },
