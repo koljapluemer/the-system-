@@ -4,16 +4,17 @@
   "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: scratchpad, art, hypothesis, milestone, gestalt, context, ifThen, description, quote, source, entity, story, log, flashcard, project, do, or activity.",
   "definitions": {
     "rels": {
-      "description": "Relationships to other note files, e.g. [\"source\", \"other-note.json\"].",
+      "description": "Relationships to other note files: [label, filename] or [label, filename, mirrorLabel] — the optional third element records the reciprocal label written on the related note.",
       "type": "array",
       "items": {
         "type": "array",
         "items": [
           { "type": "string" },
+          { "type": "string" },
           { "type": "string" }
         ],
         "minItems": 2,
-        "maxItems": 2
+        "maxItems": 3
       }
     },
     "triaged": {

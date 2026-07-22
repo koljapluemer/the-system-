@@ -12,15 +12,20 @@ extension NoteFileArrays on NoteFile {
     return value is List ? value.whereType<String>().toList() : [];
   }
 
-  /// Defensive read of `rels`-shaped fields: a list of `[type, filename]`
-  /// pairs. Malformed entries (wrong length/type) are dropped rather than
-  /// thrown, matching [stringList]'s convention.
-  List<List<String>> stringPairList(String key) {
+  /// Defensive read of `rels`-shaped fields: `[label, filename]` or
+  /// `[label, filename, mirrorLabel]` entries — the optional third element
+  /// records the label written back on the related note, so
+  /// `NoteIndexNotifier.detachRelationship` can remove the mirror without a
+  /// lookup table. Malformed entries (wrong length/type) are dropped rather
+  /// than thrown, matching [stringList]'s convention.
+  List<List<String>> relList(String key) {
     final value = this[key];
     if (value is! List) return [];
     return [
       for (final entry in value)
-        if (entry is List && entry.length == 2 && entry.every((e) => e is String))
+        if (entry is List &&
+            (entry.length == 2 || entry.length == 3) &&
+            entry.every((e) => e is String))
           entry.cast<String>(),
     ];
   }

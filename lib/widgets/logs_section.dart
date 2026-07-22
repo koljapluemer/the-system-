@@ -5,11 +5,9 @@ import 'package:intl/intl.dart';
 import '../models/note_file.dart';
 import '../models/note_index.dart';
 import '../models/note_type_spec.dart';
-import '../models/relationship_type_spec.dart';
 import '../screens/note_editor_navigation.dart';
 import 'relationship_dialog.dart';
 
-final _logSpec = relationshipTypeSpecs.firstWhere((s) => s.relType == 'log');
 final _logNoteTypeSpec = noteTypeSpecs.firstWhere((s) => s.primaryType == 'log');
 
 /// Human-readable, minute-granularity formatting for a log's `createdAt`,
@@ -42,7 +40,7 @@ class LogsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final entries = [
-      for (final rel in note.stringPairList('rels'))
+      for (final rel in note.relList('rels'))
         if (rel[0] == 'log' && index.entries[rel[1]] != null)
           _LogEntry(
             filename: rel[1],
@@ -87,14 +85,14 @@ class LogsSection extends ConsumerWidget {
           alignment: Alignment.centerLeft,
           child: OutlinedButton.icon(
             icon: const Icon(Icons.add_link),
-            label: Text(_logSpec.buttonLabel),
+            label: const Text('Add Log'),
             onPressed: () => showRelationshipDialog(
               context,
               ref,
               filename: filename,
-              relType: _logSpec.relType,
-              allowedPrimaryTypes: _logSpec.allowedPrimaryTypes,
-              dialogTitle: _logSpec.buttonLabel,
+              fixedLabel: 'log',
+              allowedPrimaryTypes: const ['log'],
+              dialogTitle: 'Add Log',
             ),
           ),
         ),

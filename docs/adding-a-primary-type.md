@@ -6,17 +6,11 @@ Internal checklist for adding a new note `primaryType`. Brief — for contributo
   `additionalProperties: false`). This is the source of truth the app validates against;
   nothing else auto-derives from it.
 - `lib/models/note_type_spec.dart` — add a `NoteTypeSpec` entry: `fields` (kept in sync
-  with the schema properties above), `quickRelationshipTypes`. Every type's Lists screen
-  gets a "new note" FAB automatically (`NoteTypeListScreen` isn't gated by any flag) —
-  if the type has state a title-only `createFromSpec` create can't set up (e.g.
-  `createdAt` needing to be stamped at creation time), special-case creation there
-  instead, the way the `log` branch in `_AddScreenState._createNote` does.
-- `lib/models/relationship_type_spec.dart`'s `_allPrimaryTypes` — a hand-maintained
-  mirror of every `noteTypeSpecs` primaryType (can't import `note_type_spec.dart`
-  directly; that file imports this one), used as `seeAlso`'s `allowedPrimaryTypes` so the
-  universal "See Also" button on `NoteDetailScreen` can attach any type to any type. A
-  new primaryType left out of this list simply can't be picked as a "See Also" target —
-  no crash, just a silent gap, so don't forget it.
+  with the schema properties above). Every type's Lists screen gets a "new note" FAB
+  automatically (`NoteTypeListScreen` isn't gated by any flag) — if the type has state a
+  title-only `createFromSpec` create can't set up (e.g. `createdAt` needing to be
+  stamped at creation time), special-case creation there instead, the way the `log`
+  branch in `_AddScreenState._createNote` does.
 
 ## Must decide
 
@@ -53,16 +47,9 @@ Internal checklist for adding a new note `primaryType`. Brief — for contributo
   `"defaultVisible": ["active"]`). Leave both the schema annotation and this Dart field
   omitted/`[]` (the default) if every value should be visible by default — that's the
   convention `source` uses, rather than redundantly listing every enum value.
-- **`quickRelationshipTypes`**: does this type have a "commonly added" relationship? If
-  so, add/reuse an entry in `lib/models/relationship_type_spec.dart`'s
-  `relationshipTypeSpecs` (a new `RelationshipTypeSpec` if the relType or its
-  `allowedPrimaryTypes` differ from an existing one — don't stretch an existing entry's
-  `allowedPrimaryTypes` to cover an unrelated semantic just to reuse the key) and
-  reference its `relType` key here. If not, leave it `[]` — the type still gets relations
-  via the generic "Add Other" picker, which lists every registered relationship type
-  except `seeAlso` (see below), plus the always-present "See Also" button, which every
-  new primaryType gets automatically since it lists every registered primaryType in
-  `_allPrimaryTypes`.
+- **Relationships**: nothing to do here — every primaryType automatically gets the
+  generic "Add Relationship" button on `NoteDetailScreen` (free-text label, optional
+  reverse label, any primaryType as target), with no per-type wiring needed.
 - **`showInLists`**: should this type appear in the Lists section on the home screen?
   Defaults to `true` in both `note_schema.json` (a `showInLists` sibling of that
   `oneOf` branch's `description`, annotation-only — not validated) and

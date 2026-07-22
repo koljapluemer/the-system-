@@ -1,5 +1,3 @@
-import 'relationship_type_spec.dart';
-
 /// Describes one note primaryType's core editable fields, driving the Lists
 /// overview, per-type list, and generic edit form. Keep in sync with
 /// assets/note_schema.json.
@@ -41,12 +39,6 @@ class NoteTypeSpec {
   final String label;
   final List<NoteFieldSpec> fields;
 
-  /// relType keys (must exist in [relationshipTypeSpecs]) rendered as
-  /// dedicated "quick add" buttons on this type's [NoteDetailScreen],
-  /// alongside the always-present "See Also" button. Empty by default — opt
-  /// in per type as relationship conventions get established.
-  final List<String> quickRelationshipTypes;
-
   /// Allowed values for this primaryType's optional `secondaryType` field,
   /// mirrored in this primaryType's `enum` in `note_schema.json`. Empty by
   /// default — this primaryType has no secondaryType concept, and
@@ -80,9 +72,8 @@ class NoteTypeSpec {
 
   /// Whether this type's view screen renders a dedicated expandable "Logs"
   /// section (see `lib/widgets/logs_section.dart`): every related `log`
-  /// note (relType `log`), newest first, plus an "Add Log" button. False by
-  /// default — opt in per type, alongside a `log` entry in
-  /// `relationship_type_spec.dart`.
+  /// note (relationship label `log`), newest first, plus an "Add Log"
+  /// button. False by default — opt in per type.
   final bool showLogs;
 
   /// Whether this type's view screen renders a dedicated "Questions" section
@@ -96,7 +87,6 @@ class NoteTypeSpec {
     required this.primaryType,
     required this.label,
     required this.fields,
-    this.quickRelationshipTypes = const [],
     this.secondaryTypes = const [],
     this.defaultVisibleSecondaryTypes = const [],
     this.showInLists = true,
@@ -150,7 +140,6 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'gestalt',
     label: 'Gestalt',
-    quickRelationshipTypes: ['description', 'opposite', 'parent', 'child'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -159,7 +148,6 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'context',
     label: 'Context',
-    quickRelationshipTypes: ['ifThen'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -168,7 +156,6 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'ifThen',
     label: 'If/Then',
-    quickRelationshipTypes: ['source', 'evidence', 'context', 'opposite', 'agrees', 'parent', 'child'],
     showQuestions: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
@@ -178,7 +165,6 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'description',
     label: 'Description',
-    quickRelationshipTypes: ['gestalt', 'evidence', 'opposite', 'agrees', 'parent', 'child'],
     showQuestions: true,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
@@ -188,7 +174,6 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'quote',
     label: 'Quote',
-    quickRelationshipTypes: ['source', 'entity'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -199,7 +184,6 @@ const noteTypeSpecs = [
     label: 'Source',
     secondaryTypes: ['book', 'article', 'blog', 'video', 'software', 'misc'],
     showLogs: true,
-    quickRelationshipTypes: ['source', 'entity'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
@@ -219,7 +203,6 @@ const noteTypeSpecs = [
   NoteTypeSpec(
     primaryType: 'story',
     label: 'Story',
-    quickRelationshipTypes: ['source', 'entity'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),

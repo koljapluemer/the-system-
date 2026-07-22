@@ -4,7 +4,6 @@ import '../models/note_file.dart';
 import '../models/note_index.dart';
 import '../models/note_search.dart';
 import '../models/note_type_spec.dart';
-import '../models/relationship_type_spec.dart';
 import 'providers.dart';
 
 /// Properties allowed by assets/note_schema.json for a primaryType that
@@ -56,75 +55,66 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
     await update((index) => index.copyWith(entries: {...index.entries}..remove(filename)));
   }
 
-  /// Attaches `[relType, relatedFilename]` to `filename`'s `rels`, then — if
-  /// `relType` has a [RelationshipTypeSpec.mirrorRelType] and
-  /// `relatedFilename` exists — also attaches `[mirrorRelType, filename]` to
-  /// the related note, so e.g. adding a source to a quote also adds the
-  /// quote back to the source. `log` and `seeAlso` have no mirrorRelType, so
-  /// they're never mirrored, per docs/specs/type-improve.md. Idempotent: a
-  /// pair already present on either side is not duplicated (needed so
-  /// `_deleteRelated`'s Undo, which restores the related note's full
-  /// pre-delete content and then re-attaches, doesn't double the mirror).
+  /// Attaches `[label, relatedFilename, reverseLabel]` to `filename`'s
+  /// `rels`, and always attaches the mirror `[reverseLabel, filename, label]`
+  /// to the related note too — e.g. adding "source" to a quote also adds
+  /// "backlink" (or a caller-supplied [reverseLabel]) back to the source.
+  /// Every relationship is reciprocal now; [reverseLabel] defaults to
+  /// `'backlink'` when not given. Idempotent: a pair already present on
+  /// either side is not duplicated (needed so `_deleteRelated`'s Undo, which
+  /// restores the related note's full pre-delete content and then
+  /// re-attaches, doesn't double the mirror).
   Future<void> attachRelationship({
     required String filename,
-    required String relType,
+    required String label,
+    String? reverseLabel,
     required String relatedFilename,
   }) async {
+    final effectiveReverseLabel = reverseLabel ?? 'backlink';
+
     final index = await future;
     final note = index.entries[filename];
     if (note == null) return;
-    final rel = [relType, relatedFilename];
-    if (!note.stringPairList('rels').any((r) => r[0] == rel[0] && r[1] == rel[1])) {
+    final rel = [label, relatedFilename, effectiveReverseLabel];
+    if (!note.relList('rels').any((r) => r[0] == label && r[1] == relatedFilename)) {
       await write(filename, {
         ...note,
-        'rels': [...note.stringPairList('rels'), rel],
+        'rels': [...note.relList('rels'), rel],
       });
     }
 
-    final mirrorRelType = _mirrorRelTypeFor(relType);
-    if (mirrorRelType == null) return;
     final related = (await future).entries[relatedFilename];
     if (related == null) return;
-    final mirrorRel = [mirrorRelType, filename];
-    if (!related.stringPairList('rels').any((r) => r[0] == mirrorRel[0] && r[1] == mirrorRel[1])) {
+    final mirrorRel = [effectiveReverseLabel, filename, label];
+    if (!related.relList('rels').any((r) => r[0] == effectiveReverseLabel && r[1] == filename)) {
       await write(relatedFilename, {
         ...related,
-        'rels': [...related.stringPairList('rels'), mirrorRel],
+        'rels': [...related.relList('rels'), mirrorRel],
       });
     }
   }
 
-  /// Removes [rel] from `filename`'s `rels`, then — if `rel[0]` has a
-  /// [RelationshipTypeSpec.mirrorRelType] and the related note exists —
-  /// also removes the mirrored `[mirrorRelType, filename]` pair from it.
+  /// Removes [rel] from `filename`'s `rels`, then — if [rel] carries its
+  /// recorded mirror label (a 3-element entry, `rel[2]`) — also removes the
+  /// mirrored `[rel[2], filename]` pair from the related note. A legacy
+  /// 2-element entry (predating this format, or hand-edited) has no known
+  /// mirror to remove, so only the local side is detached.
   Future<void> detachRelationship({required String filename, required List<String> rel}) async {
     final index = await future;
     final note = index.entries[filename];
     if (note != null) {
-      final rels = note.stringPairList('rels').where((r) => r[0] != rel[0] || r[1] != rel[1]);
+      final rels = note.relList('rels').where((r) => r[0] != rel[0] || r[1] != rel[1]);
       await write(filename, {...note, 'rels': rels.toList()});
     }
 
-    final mirrorRelType = _mirrorRelTypeFor(rel[0]);
-    if (mirrorRelType == null) return;
+    if (rel.length < 3) return;
+    final mirrorLabel = rel[2];
     final relatedFilename = rel[1];
     final related = (await future).entries[relatedFilename];
     if (related == null) return;
-    final mirrorRels = related
-        .stringPairList('rels')
-        .where((r) => !(r[0] == mirrorRelType && r[1] == filename));
+    final mirrorRels =
+        related.relList('rels').where((r) => !(r[0] == mirrorLabel && r[1] == filename));
     await write(relatedFilename, {...related, 'rels': mirrorRels.toList()});
-  }
-
-  /// Falls back to `null` (no mirroring) for a relType not in the registry
-  /// (e.g. a hand-edited file, or a relType retired from the registry) —
-  /// degrades gracefully rather than crashing, matching
-  /// `NoteDetailScreen._relationshipLabel`'s conventions.
-  String? _mirrorRelTypeFor(String relType) {
-    for (final spec in relationshipTypeSpecs) {
-      if (spec.relType == relType) return spec.mirrorRelType;
-    }
-    return null;
   }
 
   /// Creates a new `primaryType: "log"` note, stamped with the current

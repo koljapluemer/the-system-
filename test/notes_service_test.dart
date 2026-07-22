@@ -96,6 +96,20 @@ void main() {
         ['source', 'some-file.json'],
       ]);
     });
+
+    test('preserves a 3-element rels entry (with mirrorLabel) untouched through a write', () async {
+      final rels = [
+        ['inspired by', 'some-file.json', 'inspires'],
+      ];
+      await writeFixture('e2.json', {'primaryType': 'scratchpad', 'rels': rels});
+      final note = await service.readJsonFile(tempDir.path, 'e2.json');
+      await service.writeJsonFile(tempDir.path, 'e2.json', {...note, 'triaged': 'true'});
+
+      final reloaded = await service.readJsonFile(tempDir.path, 'e2.json');
+      expect(reloaded['rels'], [
+        ['inspired by', 'some-file.json', 'inspires'],
+      ]);
+    });
   });
 
   group('createNote', () {

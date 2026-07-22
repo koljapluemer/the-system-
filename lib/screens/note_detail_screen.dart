@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/note_file.dart';
 import '../models/note_index.dart';
 import '../models/note_type_spec.dart';
-import '../models/relationship_type_spec.dart';
 import '../state/note_index_notifier.dart';
 import '../state/secondary_type_session.dart';
 import '../widgets/array_list_section.dart';
@@ -19,11 +18,12 @@ import 'note_editor_navigation.dart';
 
 /// The universal note view/edit UI: title/content are shown read-only with a
 /// pencil button to inline-edit each, aliases likewise behind a pencil
-/// toggle, plus a unified relationship list (any `[relType, filename]` rel,
-/// labeled by type) with "quick add" buttons per [NoteTypeSpec
-/// .quickRelationshipTypes], and — always last — a "See Also" button
-/// (allowed for every primaryType). Attaching/detaching a relationship also
-/// mirrors it onto the related note where applicable (see
+/// toggle, plus a unified relationship list (any `[label, filename]` rel,
+/// labeled by whatever free-text label was typed when it was attached) with
+/// a single "Add Relationship" button that prompts for a forward label and
+/// an optional reverse label. Attaching a relationship always mirrors it
+/// onto the related note (reverse label defaults to "backlink"); detaching
+/// removes both sides too (see
 /// [NoteIndexNotifier.attachRelationship]/`detachRelationship`). Reached
 /// from every type's Lists screen via [pushNoteEditor], and as the Import
 /// Obs Flow's post-create screen.
@@ -76,7 +76,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
   }
 
   /// Removes [rel] from the note's `rels`, also removing the mirrored rel
-  /// from the related note if [rel]'s relType is mirrored (see
+  /// from the related note if [rel] carries a recorded mirror label (see
   /// [NoteIndexNotifier.detachRelationship]), offering an Undo that
   /// re-attaches both sides.
   Future<void> _detachRel(
@@ -92,7 +92,8 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
       message: 'Detached "$relatedTitle"',
       onUndo: () => notifier.attachRelationship(
         filename: widget.filename,
-        relType: rel[0],
+        label: rel[0],
+        reverseLabel: rel.length > 2 ? rel[2] : null,
         relatedFilename: rel[1],
       ),
     );
@@ -123,7 +124,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
         if (current == null) return;
         await notifier.write(widget.filename, {
           ...current,
-          'rels': [...current.stringPairList('rels'), rel],
+          'rels': [...current.relList('rels'), rel],
         });
       },
     );
@@ -144,35 +145,17 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
     pushNoteEditor(context, spec: relatedSpec, filename: relatedFilename);
   }
 
-  /// Falls back to the raw relType key if it's not in the registry (e.g. a
-  /// hand-edited file, or a relType retired from the registry) — degrades
-  /// gracefully rather than crashing, matching [NoteFile]'s defensive-read
-  /// conventions.
-  String _relationshipLabel(String relType) {
-    for (final spec in relationshipTypeSpecs) {
-      if (spec.relType == relType) return spec.label;
-    }
-    return relType;
-  }
-
-  /// Looks up a quick-button's registry entry. Assumes
-  /// [NoteTypeSpec.quickRelationshipTypes] keys always exist in
-  /// [relationshipTypeSpecs] — both const lists are hand-maintained together,
-  /// so this is an invariant, not a runtime concern.
-  RelationshipTypeSpec _quickSpec(String relType) =>
-      relationshipTypeSpecs.firstWhere((s) => s.relType == relType);
-
-  /// The unified relationship list: every `[relType, filename]` rel
-  /// regardless of type, in `rels` array order, each row labeled by its
-  /// relationship type. Followed by "quick add" buttons for
-  /// [NoteTypeSpec.quickRelationshipTypes] and the "See Also" button.
+  /// The unified relationship list: every `[label, filename]` rel, in `rels`
+  /// array order, each row labeled by its free-text label. Followed by a
+  /// single "Add Relationship" button that prompts for a label and an
+  /// optional reverse label.
   Widget _relationshipsSection(BuildContext context, NoteFile note, NoteIndex index) {
     // `log` rels get their own dedicated, chronologically-sorted display
     // (see [LogsSection]) for types that opt into it, so they're left out
     // here to avoid showing every log twice.
     final rels = widget.spec.showLogs
-        ? note.stringPairList('rels').where((r) => r[0] != 'log').toList()
-        : note.stringPairList('rels');
+        ? note.relList('rels').where((r) => r[0] != 'log').toList()
+        : note.relList('rels');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -181,7 +164,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
         if (rels.isEmpty) const Text('—'),
         for (final rel in rels)
           _RelationshipRow(
-            relTypeLabel: _relationshipLabel(rel[0]),
+            relTypeLabel: rel[0],
             title: index.entries[rel[1]]?['title'] as String? ?? rel[1],
             targetExists: index.entries.containsKey(rel[1]),
             onSaveTitle: (newTitle) => _renameRelated(rel[1], newTitle),
@@ -200,38 +183,18 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                 : null,
           ),
         const SizedBox(height: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (final relType in widget.spec.quickRelationshipTypes)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.add_link),
-                  label: Text(_quickSpec(relType).buttonLabel),
-                  onPressed: () => showRelationshipDialog(
-                    context,
-                    ref,
-                    filename: widget.filename,
-                    relType: relType,
-                    allowedPrimaryTypes: _quickSpec(relType).allowedPrimaryTypes,
-                    dialogTitle: _quickSpec(relType).buttonLabel,
-                  ),
-                ),
-              ),
-            OutlinedButton.icon(
-              icon: const Icon(Icons.add_link),
-              label: Text(_quickSpec(seeAlsoRelType).buttonLabel),
-              onPressed: () => showRelationshipDialog(
-                context,
-                ref,
-                filename: widget.filename,
-                relType: seeAlsoRelType,
-                allowedPrimaryTypes: _quickSpec(seeAlsoRelType).allowedPrimaryTypes,
-                dialogTitle: _quickSpec(seeAlsoRelType).buttonLabel,
-              ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: OutlinedButton.icon(
+            icon: const Icon(Icons.add_link),
+            label: const Text('Add Relationship'),
+            onPressed: () => showRelationshipDialog(
+              context,
+              ref,
+              filename: widget.filename,
+              dialogTitle: 'Add Relationship',
             ),
-          ],
+          ),
         ),
       ],
     );

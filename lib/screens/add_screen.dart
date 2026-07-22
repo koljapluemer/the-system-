@@ -16,10 +16,13 @@ import 'note_editor_navigation.dart';
 /// Single note-creation form covering every `primaryType`, configurable
 /// enough to back every place notes get created: the standalone Add flow
 /// (from Home), the Lists screen's "new note" action, and the relationship
-/// dialog's "create new related note" fallback — see `note_type_list_screen.dart`
-/// and `relationship_dialog.dart`. A type picker, a title field that doubles
-/// as a live fuzzy search over existing notes (to catch accidental
-/// duplicates), and up to three actions.
+/// dialog's note-picker/create flow — see `note_type_list_screen.dart` and
+/// `relationship_dialog.dart`. A type picker, a title field that doubles as
+/// a live fuzzy search over existing notes (to catch accidental
+/// duplicates), up to three actions, and — when
+/// [relationshipLabelController] is given — an inline relationship-label
+/// section, so attaching a relationship is a single screen rather than a
+/// separate prompt-then-picker flow.
 class AddScreen extends ConsumerStatefulWidget {
   /// Types selectable in the dropdown. A single entry locks the type
   /// (dropdown disabled, no quick-select chips) — used by Lists (locked to
@@ -60,6 +63,19 @@ class AddScreen extends ConsumerStatefulWidget {
   /// attach the freshly created note as a relationship.
   final FutureOr<void> Function(WidgetRef ref, String filename)? onCreated;
 
+  /// When non-null, renders a "Label" field above the type picker and
+  /// requires it to be non-empty before a suggestion can be selected or a
+  /// note created — the relationship dialog owns this controller so it can
+  /// read the typed label at attach time, keeping "type a relationship
+  /// label" and "pick/create the target note" a single screen instead of a
+  /// separate prompt-then-picker flow.
+  final TextEditingController? relationshipLabelController;
+
+  /// Rendered alongside [relationshipLabelController] (only when that's
+  /// non-null) as an optional "Reverse label" field; left blank, the
+  /// relationship dialog defaults it to "backlink".
+  final TextEditingController? relationshipReverseLabelController;
+
   const AddScreen({
     super.key,
     this.allowedTypes,
@@ -69,6 +85,8 @@ class AddScreen extends ConsumerStatefulWidget {
     this.showBackButton = false,
     this.onSuggestionSelected,
     this.onCreated,
+    this.relationshipLabelController,
+    this.relationshipReverseLabelController,
   });
 
   @override
@@ -172,9 +190,15 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     return notifier.createFromSpec(_spec, title: title, secondaryType: _secondaryType);
   }
 
+  /// `true` when [AddScreen.relationshipLabelController] is absent, or
+  /// present with non-blank text — the "label required" gate mirrored by
+  /// [_commit] and [_selectSuggestion].
+  bool get _relationshipLabelValid =>
+      widget.relationshipLabelController?.text.trim().isNotEmpty ?? true;
+
   Future<String?> _commit() async {
     final title = _titleController.text.trim();
-    if (title.isEmpty || _saving) return null;
+    if (title.isEmpty || _saving || !_relationshipLabelValid) return null;
 
     setState(() => _saving = true);
     final filename = await _createNote(title);
@@ -219,6 +243,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
   }
 
   Future<void> _selectSuggestion(NoteMatch match) async {
+    if (!_relationshipLabelValid) return;
     if (widget.onSuggestionSelected != null) {
       await widget.onSuggestionSelected!(context, ref, match.filename);
       return;
@@ -247,6 +272,25 @@ class _AddScreenState extends ConsumerState<AddScreen> {
     final formFields = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (widget.relationshipLabelController != null) ...[
+          TextField(
+            controller: widget.relationshipLabelController,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Label (e.g. "inspired by")',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: widget.relationshipReverseLabelController,
+            decoration: const InputDecoration(
+              labelText: 'Reverse label (optional, defaults to "backlink")',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
         if (topTypes.isNotEmpty) ...[
           Wrap(
             spacing: 8,
@@ -301,7 +345,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
           key: _titleFieldKey,
           controller: _titleController,
           focusNode: _titleFocusNode,
-          autofocus: true,
+          autofocus: widget.relationshipLabelController == null,
           minLines: 4,
           maxLines: 12,
           decoration: const InputDecoration(

@@ -95,4 +95,102 @@ void main() {
     final onDisk = jsonDecode(await File('${tempDir.path}/$filename').readAsString());
     expect(onDisk['secondaryType'], 'active');
   });
+
+  group('attachRelationship', () {
+    test('writes both sides with an explicit reverse label', () async {
+      await writeFixture('a.json', {'primaryType': 'scratchpad', 'title': 'A'});
+      await writeFixture('b.json', {'primaryType': 'scratchpad', 'title': 'B'});
+      await container.read(noteIndexProvider.future);
+
+      await container.read(noteIndexProvider.notifier).attachRelationship(
+            filename: 'a.json',
+            label: 'inspired by',
+            reverseLabel: 'inspires',
+            relatedFilename: 'b.json',
+          );
+
+      final index = container.read(noteIndexProvider).value!;
+      expect(index.entries['a.json']?['rels'], [
+        ['inspired by', 'b.json', 'inspires'],
+      ]);
+      expect(index.entries['b.json']?['rels'], [
+        ['inspires', 'a.json', 'inspired by'],
+      ]);
+    });
+
+    test('defaults the reverse label to "backlink" when omitted', () async {
+      await writeFixture('a.json', {'primaryType': 'scratchpad', 'title': 'A'});
+      await writeFixture('b.json', {'primaryType': 'scratchpad', 'title': 'B'});
+      await container.read(noteIndexProvider.future);
+
+      await container.read(noteIndexProvider.notifier).attachRelationship(
+            filename: 'a.json',
+            label: 'seeAlso',
+            relatedFilename: 'b.json',
+          );
+
+      final index = container.read(noteIndexProvider).value!;
+      expect(index.entries['b.json']?['rels'], [
+        ['backlink', 'a.json', 'seeAlso'],
+      ]);
+    });
+  });
+
+  group('detachRelationship', () {
+    test('removes both sides using the entry\'s recorded mirror label', () async {
+      await writeFixture('a.json', {
+        'primaryType': 'scratchpad',
+        'title': 'A',
+        'rels': [
+          ['inspired by', 'b.json', 'inspires'],
+        ],
+      });
+      await writeFixture('b.json', {
+        'primaryType': 'scratchpad',
+        'title': 'B',
+        'rels': [
+          ['inspires', 'a.json', 'inspired by'],
+        ],
+      });
+      await container.read(noteIndexProvider.future);
+
+      await container.read(noteIndexProvider.notifier).detachRelationship(
+            filename: 'a.json',
+            rel: ['inspired by', 'b.json', 'inspires'],
+          );
+
+      final index = container.read(noteIndexProvider).value!;
+      expect(index.entries['a.json']?['rels'], <List<String>>[]);
+      expect(index.entries['b.json']?['rels'], <List<String>>[]);
+    });
+
+    test('only detaches the local side for a legacy 2-element entry', () async {
+      await writeFixture('a.json', {
+        'primaryType': 'scratchpad',
+        'title': 'A',
+        'rels': [
+          ['source', 'b.json'],
+        ],
+      });
+      await writeFixture('b.json', {
+        'primaryType': 'source',
+        'title': 'B',
+        'rels': [
+          ['sourceOf', 'a.json'],
+        ],
+      });
+      await container.read(noteIndexProvider.future);
+
+      await container.read(noteIndexProvider.notifier).detachRelationship(
+            filename: 'a.json',
+            rel: ['source', 'b.json'],
+          );
+
+      final index = container.read(noteIndexProvider).value!;
+      expect(index.entries['a.json']?['rels'], <List<String>>[]);
+      expect(index.entries['b.json']?['rels'], [
+        ['sourceOf', 'a.json'],
+      ]);
+    });
+  });
 }

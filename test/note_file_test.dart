@@ -24,6 +24,55 @@ void main() {
     });
   });
 
+  group('relList', () {
+    test('keeps 2-element entries', () {
+      final NoteFile note = {
+        'rels': [
+          ['source', 'a.json'],
+        ],
+      };
+      expect(note.relList('rels'), [
+        ['source', 'a.json'],
+      ]);
+    });
+
+    test('keeps 3-element entries', () {
+      final NoteFile note = {
+        'rels': [
+          ['source', 'a.json', 'backlink'],
+        ],
+      };
+      expect(note.relList('rels'), [
+        ['source', 'a.json', 'backlink'],
+      ]);
+    });
+
+    test('returns an empty list when the key is missing', () {
+      final NoteFile note = {};
+      expect(note.relList('rels'), <List<String>>[]);
+    });
+
+    test('drops entries with the wrong length', () {
+      final NoteFile note = {
+        'rels': [
+          ['source'],
+          ['source', 'a.json', 'backlink', 'extra'],
+        ],
+      };
+      expect(note.relList('rels'), <List<String>>[]);
+    });
+
+    test('drops entries with a non-string element', () {
+      final NoteFile note = {
+        'rels': [
+          ['source', 1],
+          [1, 'a.json', 'backlink'],
+        ],
+      };
+      expect(note.relList('rels'), <List<String>>[]);
+    });
+  });
+
   group('questionsMap', () {
     test('returns the map when the field is well-formed', () {
       final NoteFile note = {

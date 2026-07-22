@@ -24,6 +24,21 @@ void main() {
       expect(result, isNot(contains('b.json')));
     });
 
+    test('accepts a rels entry with a third mirrorLabel element', () async {
+      final index = NoteIndex(entries: {
+        'b2.json': {
+          'primaryType': 'scratchpad',
+          'title': 'B2',
+          'content': 'body text',
+          'rels': [
+            ['inspired by', 'other.json', 'inspires'],
+          ],
+        },
+      });
+      final result = await service.findInvalid(index);
+      expect(result, isNot(contains('b2.json')));
+    });
+
     test('accepts a well-formed source note with a valid secondaryType', () async {
       final index = NoteIndex(entries: {
         'bk.json': {'primaryType': 'source', 'title': 'Some Book', 'secondaryType': 'book'},
