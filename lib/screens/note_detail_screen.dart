@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../models/note_file.dart';
 import '../models/note_index.dart';
@@ -184,9 +183,6 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
           _RelationshipRow(
             relTypeLabel: _relationshipLabel(rel[0]),
             title: index.entries[rel[1]]?['title'] as String? ?? rel[1],
-            linkUrl: index.entries[rel[1]]?['primaryType'] == 'link'
-                ? (index.entries[rel[1]]?['content'] as String?)
-                : null,
             targetExists: index.entries.containsKey(rel[1]),
             onSaveTitle: (newTitle) => _renameRelated(rel[1], newTitle),
             onJumpTo: index.entries.containsKey(rel[1]) ? () => _jumpTo(context, index, rel[1]) : null,
@@ -305,6 +301,7 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                                 label: field.label,
                                 value: note[field.key] as String? ?? '',
                                 multiline: field.multiline,
+                                isUrl: field.isUrl,
                                 onSave: (value) => _saveField(note, field.key, value),
                               ),
                   if (widget.spec.secondaryTypes.isNotEmpty)
@@ -389,11 +386,6 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
 class _RelationshipRow extends StatefulWidget {
   final String relTypeLabel;
   final String title;
-
-  /// Non-null when the related note is a `link` note: its `content` (the
-  /// URL), so [title] — the link note's `title` — renders as an actual
-  /// tappable hyperlink instead of plain text.
-  final String? linkUrl;
   final bool targetExists;
   final ValueChanged<String> onSaveTitle;
   final VoidCallback? onJumpTo;
@@ -403,7 +395,6 @@ class _RelationshipRow extends StatefulWidget {
   const _RelationshipRow({
     required this.relTypeLabel,
     required this.title,
-    this.linkUrl,
     required this.targetExists,
     required this.onSaveTitle,
     required this.onJumpTo,
@@ -477,22 +468,10 @@ class _RelationshipRowState extends State<_RelationshipRow> {
         ),
       );
     }
-    final uri = widget.linkUrl == null ? null : Uri.tryParse(widget.linkUrl!);
     return ListTile(
       dense: true,
       contentPadding: EdgeInsets.zero,
-      title: uri == null
-          ? Text(widget.title)
-          : InkWell(
-              onTap: () => launchUrl(uri, mode: LaunchMode.externalApplication),
-              child: Text(
-                widget.title,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-            ),
+      title: Text(widget.title),
       subtitle: Text(widget.relTypeLabel),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

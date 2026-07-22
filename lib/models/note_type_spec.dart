@@ -19,6 +19,12 @@ class NoteFieldSpec {
   /// inline-editable text field.
   final bool isBool;
 
+  /// Whether this field holds a URL — rendered by [NoteDetailScreen] as an
+  /// [InlineEditableText] whose read-only display is a tappable hyperlink
+  /// (opened via `url_launcher`) instead of markdown, while still editable
+  /// inline via the same pencil affordance as any other field.
+  final bool isUrl;
+
   const NoteFieldSpec({
     required this.key,
     required this.label,
@@ -26,6 +32,7 @@ class NoteFieldSpec {
     this.required = false,
     this.isArray = false,
     this.isBool = false,
+    this.isUrl = false,
   });
 }
 
@@ -192,20 +199,21 @@ const noteTypeSpecs = [
     label: 'Source',
     secondaryTypes: ['book', 'article', 'blog', 'video', 'software', 'misc'],
     showLogs: true,
-    quickRelationshipTypes: ['source', 'entity', 'link'],
+    quickRelationshipTypes: ['source', 'entity'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
       NoteFieldSpec(key: 'worthCheckingOutAgain', label: 'Worth Checking Out Again', isBool: true),
+      NoteFieldSpec(key: 'url', label: 'URL', isUrl: true),
     ],
   ),
   NoteTypeSpec(
     primaryType: 'entity',
     label: 'Entity',
-    quickRelationshipTypes: ['link'],
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
+      NoteFieldSpec(key: 'url', label: 'URL', isUrl: true),
     ],
   ),
   NoteTypeSpec(
@@ -269,20 +277,6 @@ const noteTypeSpecs = [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'front', label: 'Front', multiline: true, required: true),
       NoteFieldSpec(key: 'back', label: 'Back', multiline: true, required: true),
-    ],
-  ),
-  // Never browsed as its own list (showInLists: false) — always created via
-  // the `link` quick relationship on source/entity notes (see
-  // relationship_type_spec.dart) and rendered there as an actual hyperlink
-  // (see NoteDetailScreen._RelationshipRow), title as the link's label and
-  // content as its URL.
-  NoteTypeSpec(
-    primaryType: 'link',
-    label: 'Link',
-    showInLists: false,
-    fields: [
-      NoteFieldSpec(key: 'title', label: 'Name', required: true),
-      NoteFieldSpec(key: 'content', label: 'URL', required: true),
     ],
   ),
 ];

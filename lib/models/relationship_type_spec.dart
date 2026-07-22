@@ -45,7 +45,6 @@ const _allPrimaryTypes = [
   'story',
   'log',
   'flashcard',
-  'link',
   'project',
   'do',
   'activity',
@@ -182,13 +181,5 @@ const relationshipTypeSpecs = [
     label: 'Log',
     buttonLabel: 'Add Log',
     allowedPrimaryTypes: ['log'],
-  ),
-  // Not reciprocal — no mirrorRelType, so attaching a link never writes
-  // anything back onto the link note itself.
-  RelationshipTypeSpec(
-    relType: 'link',
-    label: 'Link',
-    buttonLabel: 'Add Link',
-    allowedPrimaryTypes: ['link'],
   ),
 ];

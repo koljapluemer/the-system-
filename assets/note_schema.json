@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "The System note file",
-  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: scratchpad, art, hypothesis, milestone, gestalt, context, ifThen, description, quote, source, entity, story, log, flashcard, link, project, do, or activity.",
+  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: scratchpad, art, hypothesis, milestone, gestalt, context, ifThen, description, quote, source, entity, story, log, flashcard, project, do, or activity.",
   "definitions": {
     "rels": {
       "description": "Relationships to other note files, e.g. [\"source\", \"other-note.json\"].",
@@ -234,6 +234,7 @@
           "enum": ["book", "article", "blog", "video", "software", "misc"]
         },
         "worthCheckingOutAgain": { "type": "boolean" },
+        "url": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
         "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
@@ -250,6 +251,7 @@
         "title": { "type": "string" },
         "aliases": { "$ref": "#/definitions/aliases" },
         "content": { "type": "string" },
+        "url": { "type": "string" },
         "rels": { "$ref": "#/definitions/rels" },
         "extraData": { "$ref": "#/definitions/extraData" },
         "triaged": { "$ref": "#/definitions/triaged" }
@@ -347,22 +349,6 @@
         "extraData": { "$ref": "#/definitions/extraData" }
       },
       "required": ["primaryType", "title", "front", "back"],
-      "additionalProperties": false
-    },
-    {
-      "description": "Link notes: an external URL. title is the link's display label, content holds the URL. Never shown in the Lists overview — attached to other notes via a link relationship instead.",
-      "showInLists": false,
-      "type": "object",
-      "properties": {
-        "primaryType": { "const": "link" },
-        "title": { "type": "string" },
-        "aliases": { "$ref": "#/definitions/aliases" },
-        "content": { "type": "string" },
-        "rels": { "$ref": "#/definitions/rels" },
-        "extraData": { "$ref": "#/definitions/extraData" },
-        "triaged": { "$ref": "#/definitions/triaged" }
-      },
-      "required": ["primaryType", "title", "content"],
       "additionalProperties": false
     }
   ]
