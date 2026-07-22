@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../state/recent_history_notifier.dart';
 import 'floating_notes_screen.dart';
+import 'graph_view_screen.dart';
 import 'memorize_screen.dart';
 import 'netting_screen.dart';
 import 'scratchpad_triage_screen.dart';
@@ -56,6 +57,12 @@ final flowSpecs = [
     label: 'Search',
     icon: Icons.search,
     builder: (_) => const SearchScreen(),
+  ),
+  FlowSpec(
+    id: 'graph-view',
+    label: 'Graph View',
+    icon: Icons.hub_outlined,
+    builder: (_) => const GraphViewScreen(),
   ),
 ];
 
