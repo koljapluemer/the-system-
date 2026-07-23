@@ -104,7 +104,7 @@ class NotesService {
     return filename;
   }
 
-  /// Most filesystems cap a filename at 255 bytes; long titles (e.g. a quote
+  /// Most filesystems cap a filename at 255 bytes; long titles (e.g. a story
   /// note whose title is a whole paragraph) would otherwise blow past that
   /// once slugified, so this is capped well under the limit even after the
   /// `-xxxxxx.json` suffix is appended.

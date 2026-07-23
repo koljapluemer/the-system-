@@ -11,7 +11,6 @@ import '../widgets/change_type_dialog.dart';
 import '../widgets/inline_editable_text.dart';
 import '../widgets/logs_section.dart';
 import '../widgets/obsidian_import_dialog.dart';
-import '../widgets/questions_section.dart';
 import '../widgets/relationship_dialog.dart';
 import '../widgets/undo_snackbar.dart';
 import 'note_editor_navigation.dart';
@@ -44,14 +43,6 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
     return ref.read(noteIndexProvider.notifier).write(widget.filename, {...note, key: value});
   }
 
-  Future<void> _saveArrayField(NoteFile note, String key, List<String> items) {
-    return ref.read(noteIndexProvider.notifier).write(widget.filename, {...note, key: items});
-  }
-
-  Future<void> _saveBoolField(NoteFile note, String key, bool value) {
-    return ref.read(noteIndexProvider.notifier).write(widget.filename, {...note, key: value});
-  }
-
   Future<void> _saveSecondaryType(NoteFile note, String? value) {
     final updated = {...note};
     if (value == null) {
@@ -67,12 +58,6 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
     return ref
         .read(noteIndexProvider.notifier)
         .write(widget.filename, {...note, 'aliases': aliases});
-  }
-
-  Future<void> _saveQuestions(NoteFile note, Map<String, dynamic> questions) {
-    return ref
-        .read(noteIndexProvider.notifier)
-        .write(widget.filename, {...note, 'questions': questions});
   }
 
   /// Removes [rel] from the note's `rels`, also removing the mirrored rel
@@ -242,31 +227,12 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   for (final field in widget.spec.fields)
-                    field.isArray
-                        ? Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: ArrayListSection(
-                              label: field.label,
-                              items: note.stringList(field.key),
-                              onChanged: (items) => _saveArrayField(note, field.key, items),
-                            ),
-                          )
-                        : field.isBool
-                            ? CheckboxListTile(
-                                contentPadding: EdgeInsets.zero,
-                                controlAffinity: ListTileControlAffinity.leading,
-                                title: Text(field.label),
-                                value: note.boolValue(field.key),
-                                onChanged: (value) =>
-                                    _saveBoolField(note, field.key, value ?? false),
-                              )
-                            : InlineEditableText(
-                                label: field.label,
-                                value: note[field.key] as String? ?? '',
-                                multiline: field.multiline,
-                                isUrl: field.isUrl,
-                                onSave: (value) => _saveField(note, field.key, value),
-                              ),
+                    InlineEditableText(
+                      label: field.label,
+                      value: note[field.key] as String? ?? '',
+                      multiline: field.multiline,
+                      onSave: (value) => _saveField(note, field.key, value),
+                    ),
                   if (widget.spec.secondaryTypes.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16),
@@ -321,13 +287,6 @@ class _NoteDetailScreenState extends ConsumerState<NoteDetailScreen> {
                   const SizedBox(height: 16),
                   if (widget.spec.showLogs) ...[
                     LogsSection(filename: widget.filename, note: note, index: index),
-                    const SizedBox(height: 16),
-                  ],
-                  if (widget.spec.showQuestions) ...[
-                    QuestionsSection(
-                      questions: note.questionsMap,
-                      onChanged: (q) => _saveQuestions(note, q),
-                    ),
                     const SizedBox(height: 16),
                   ],
                   _relationshipsSection(context, note, index),

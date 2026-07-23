@@ -24,8 +24,8 @@ class _LogEntry {
 }
 
 /// Expandable "Logs" section for note types that accumulate timestamped log
-/// entries (see [NoteTypeSpec.showLogs] — currently hypothesis, milestone,
-/// source): every related `log` note (relType `log`), newest first, plus an
+/// entries (see [NoteTypeSpec.showLogs] — currently milestone): every
+/// related `log` note (relType `log`), newest first, plus an
 /// "Add Log" button that reuses the generic relationship-attach flow. New
 /// logs get their `createdAt` stamped automatically by
 /// [NoteIndexNotifier.createLog] (via [AddScreen]'s `log` special-case), not

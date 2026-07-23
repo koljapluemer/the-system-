@@ -80,8 +80,11 @@ flutter test
 
 ## Data format
 
-Notes are flat `*.json` files directly inside the data folder. Each file has at least a `primaryType` field; flow-specific fields (e.g. `title`, `body`, `triaged`) vary by note type. See `example_file_1.json` / `example_file_2.json` for samples.
+Notes are flat `*.json` files directly inside the data folder. Each file has at least a `primaryType` field; flow-specific fields (e.g. `title`, `content`, `triaged`) vary by note type — see `assets/note_schema.json` for the full set of shapes, and `example_file_1.json` / `example_file_2.json` for samples.
 
 ## Flows
 
-- **Scratchpad Triage** — surfaces notes with `primaryType: "scratchpad"` and no `triaged: "true"` one at a time, in random order, with Keep / Delete / Defer actions. Delete offers an Undo snackbar.
+- **Memorize** — a spaced-repetition (FSRS) flashcard review flow, with a 1-in-6 chance of an Art Triage interstitial as a break instead.
+- **Search** — full-text search over every note.
+- **Add** — creates a note of any type.
+- **Lists** — per-type browsing/CRUD, reached from Home.

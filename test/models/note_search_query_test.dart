@@ -4,19 +4,19 @@ import 'package:the_system/models/note_search_query.dart';
 
 void main() {
   final entries = <String, NoteFile>{
-    'skepticism.json': {'primaryType': 'gestalt', 'title': 'Skepticism', 'content': 'A short note.'},
-    'other-gestalt.json': {
-      'primaryType': 'gestalt',
+    'skepticism.json': {'primaryType': 'story', 'title': 'Skepticism', 'content': 'A short note.'},
+    'other-story.json': {
+      'primaryType': 'story',
       'title': 'Completely unrelated title',
       'content': 'Nothing relevant here.',
     },
     'body-match.json': {
-      'primaryType': 'scratchpad',
+      'primaryType': 'story',
       'title': 'Random title',
       'content': 'Mentions skepticism deep in the body text.',
     },
     'aliased.json': {
-      'primaryType': 'context',
+      'primaryType': 'question',
       'title': 'Something else entirely',
       'aliases': ['Skepticism'],
     },
@@ -39,7 +39,7 @@ void main() {
 
   test('does not match unrelated notes', () {
     final results = searchNotes(entries, 'skepticism');
-    expect(results.map((r) => r.filename), isNot(contains('other-gestalt.json')));
+    expect(results.map((r) => r.filename), isNot(contains('other-story.json')));
   });
 
   test('empty query returns no results', () {
@@ -49,9 +49,9 @@ void main() {
 
   test('results are sorted by title', () {
     final unsorted = <String, NoteFile>{
-      'z.json': {'primaryType': 'gestalt', 'title': 'Zebra topic'},
-      'a.json': {'primaryType': 'gestalt', 'title': 'Apple topic'},
-      'm.json': {'primaryType': 'gestalt', 'title': 'Middle topic'},
+      'z.json': {'primaryType': 'story', 'title': 'Zebra topic'},
+      'a.json': {'primaryType': 'story', 'title': 'Apple topic'},
+      'm.json': {'primaryType': 'story', 'title': 'Middle topic'},
     };
 
     final results = searchNotes(unsorted, 'topic');

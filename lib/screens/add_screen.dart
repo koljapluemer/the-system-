@@ -35,8 +35,8 @@ class AddScreen extends ConsumerStatefulWidget {
   /// passing `allowedTypes`, as the relationship dialog does.
   final List<String>? allowedTypes;
 
-  /// Pre-selected type; must be in [allowedTypes]. Defaults to 'scratchpad'
-  /// if allowed, else the first allowed type.
+  /// Pre-selected type; must be in [allowedTypes]. Defaults to the first
+  /// allowed type.
   final String? initialType;
 
   /// Prefills the title field, e.g. carrying over a search query typed
@@ -102,8 +102,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
   final _titleFieldKey = GlobalKey();
   late final List<String> _allowedTypes = widget.allowedTypes ??
       [for (final spec in noteTypeSpecs) if (spec.showInLists) spec.primaryType];
-  late String _primaryType = widget.initialType ??
-      (_allowedTypes.contains('scratchpad') ? 'scratchpad' : _allowedTypes.first);
+  late String _primaryType = widget.initialType ?? _allowedTypes.first;
 
   /// The secondaryType picker's current value, when [_spec] has one to
   /// offer (see [_showSecondaryTypePicker]). Reset to that type's session
@@ -157,10 +156,7 @@ class _AddScreenState extends ConsumerState<AddScreen> {
 
   NoteTypeSpec get _spec => noteTypeSpecs.firstWhere((s) => s.primaryType == _primaryType);
 
-  /// hypothesis is excluded from this even though it has `secondaryTypes` —
-  /// there's no "create a pre-resolved hypothesis" affordance, so it always
-  /// starts at its default (see [_resetSecondaryType]) with no picker shown.
-  bool get _showSecondaryTypePicker => _spec.secondaryTypes.isNotEmpty && _primaryType != 'hypothesis';
+  bool get _showSecondaryTypePicker => _spec.secondaryTypes.isNotEmpty;
 
   void _resetSecondaryType() {
     if (_showSecondaryTypePicker) {

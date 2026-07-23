@@ -38,9 +38,9 @@ class TriageState {
   }
 }
 
-/// Shared triage flow ported from the old ScratchpadTriage.vue: load an
-/// untriaged queue once, then repeatedly pop a random note and act on it.
-/// Subclasses only decide which primaryType belongs in that queue.
+/// Shared triage flow: load an untriaged queue once, then repeatedly pop a
+/// random note and act on it. Subclasses only decide which primaryType
+/// belongs in that queue.
 abstract class TriageNotifier extends Notifier<TriageState> {
   final _random = Random();
   int _generation = 0;

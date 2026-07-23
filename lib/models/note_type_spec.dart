@@ -7,30 +7,11 @@ class NoteFieldSpec {
   final bool multiline;
   final bool required;
 
-  /// Whether this field is a `List<String>` rather than a plain string —
-  /// rendered by [NoteDetailScreen] as an [ArrayListSection] (the same
-  /// widget used for aliases) instead of an inline-editable text field.
-  final bool isArray;
-
-  /// Whether this field is a `bool` rather than a plain string — rendered by
-  /// [NoteDetailScreen] as a [CheckboxListTile] instead of an
-  /// inline-editable text field.
-  final bool isBool;
-
-  /// Whether this field holds a URL — rendered by [NoteDetailScreen] as an
-  /// [InlineEditableText] whose read-only display is a tappable hyperlink
-  /// (opened via `url_launcher`) instead of markdown, while still editable
-  /// inline via the same pencil affordance as any other field.
-  final bool isUrl;
-
   const NoteFieldSpec({
     required this.key,
     required this.label,
     this.multiline = false,
     this.required = false,
-    this.isArray = false,
-    this.isBool = false,
-    this.isUrl = false,
   });
 }
 
@@ -76,13 +57,6 @@ class NoteTypeSpec {
   /// button. False by default — opt in per type.
   final bool showLogs;
 
-  /// Whether this type's view screen renders a dedicated "Questions" section
-  /// (see `lib/widgets/questions_section.dart`): the Netting-flow
-  /// question/answer pairs stored in the note's `questions` field, each
-  /// editable and deletable. False by default — opt in per type, alongside a
-  /// `questions` property on that type in `note_schema.json`.
-  final bool showQuestions;
-
   const NoteTypeSpec({
     required this.primaryType,
     required this.label,
@@ -91,19 +65,10 @@ class NoteTypeSpec {
     this.defaultVisibleSecondaryTypes = const [],
     this.showInLists = true,
     this.showLogs = false,
-    this.showQuestions = false,
   });
 }
 
 const noteTypeSpecs = [
-  NoteTypeSpec(
-    primaryType: 'scratchpad',
-    label: 'Scratchpad',
-    fields: [
-      NoteFieldSpec(key: 'title', label: 'Title', required: true),
-      NoteFieldSpec(key: 'content', label: 'Content', multiline: true, required: true),
-    ],
-  ),
   NoteTypeSpec(
     primaryType: 'art',
     label: 'Art',
@@ -111,19 +76,6 @@ const noteTypeSpecs = [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true, required: true),
       NoteFieldSpec(key: 'image', label: 'Image (filename)'),
-    ],
-  ),
-  NoteTypeSpec(
-    primaryType: 'hypothesis',
-    label: 'Hypothesis',
-    secondaryTypes: ['active', 'supported', 'disproven'],
-    defaultVisibleSecondaryTypes: ['active'],
-    showLogs: true,
-    fields: [
-      NoteFieldSpec(key: 'title', label: 'Title', required: true),
-      NoteFieldSpec(key: 'context', label: 'Context', isArray: true),
-      NoteFieldSpec(key: 'notes', label: 'Notes', isArray: true),
-      NoteFieldSpec(key: 'findings', label: 'Findings', isArray: true),
     ],
   ),
   NoteTypeSpec(
@@ -137,88 +89,24 @@ const noteTypeSpecs = [
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
     ],
   ),
+  // Never browsed as its own list (showInLists: false) and never created via
+  // the generic title-only createFromSpec — `createdAt` needs to be stamped
+  // at creation time, so it goes through NoteIndexNotifier.createLog instead
+  // (see the `log` branch in `_AddScreenState._createNote`). Always created
+  // attached to a milestone via the relationship flow (see that spec's `log`
+  // relationship and `lib/widgets/logs_section.dart`), never standalone.
   NoteTypeSpec(
-    primaryType: 'gestalt',
-    label: 'Gestalt',
+    primaryType: 'log',
+    label: 'Log',
+    showInLists: false,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
-    ],
-  ),
-  NoteTypeSpec(
-    primaryType: 'context',
-    label: 'Context',
-    fields: [
-      NoteFieldSpec(key: 'title', label: 'Title', required: true),
-      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
-    ],
-  ),
-  NoteTypeSpec(
-    primaryType: 'ifThen',
-    label: 'If/Then',
-    showQuestions: true,
-    fields: [
-      NoteFieldSpec(key: 'title', label: 'Title', required: true),
-      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
-    ],
-  ),
-  NoteTypeSpec(
-    primaryType: 'description',
-    label: 'Description',
-    showQuestions: true,
-    fields: [
-      NoteFieldSpec(key: 'title', label: 'Title', required: true),
-      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
-    ],
-  ),
-  NoteTypeSpec(
-    primaryType: 'quote',
-    label: 'Quote',
-    fields: [
-      NoteFieldSpec(key: 'title', label: 'Title', required: true),
-      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
-    ],
-  ),
-  NoteTypeSpec(
-    primaryType: 'source',
-    label: 'Source',
-    secondaryTypes: ['book', 'article', 'blog', 'video', 'software', 'misc'],
-    showLogs: true,
-    fields: [
-      NoteFieldSpec(key: 'title', label: 'Title', required: true),
-      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
-      NoteFieldSpec(key: 'worthCheckingOutAgain', label: 'Worth Checking Out Again', isBool: true),
-      NoteFieldSpec(key: 'url', label: 'URL', isUrl: true),
-    ],
-  ),
-  NoteTypeSpec(
-    primaryType: 'entity',
-    label: 'Entity',
-    fields: [
-      NoteFieldSpec(key: 'title', label: 'Title', required: true),
-      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
-      NoteFieldSpec(key: 'url', label: 'URL', isUrl: true),
     ],
   ),
   NoteTypeSpec(
     primaryType: 'story',
     label: 'Story',
-    fields: [
-      NoteFieldSpec(key: 'title', label: 'Title', required: true),
-      NoteFieldSpec(key: 'content', label: 'Content', multiline: true),
-    ],
-  ),
-  // Never browsed as its own list (showInLists: false) and never created via
-  // the generic title-only createFromSpec — `createdAt` needs to be stamped
-  // at creation time, so it goes through NoteIndexNotifier.createLog instead
-  // (see the `log` branch in _AddScreenState._createNote). Always created
-  // attached to a hypothesis/source/milestone via the relationship flow (see
-  // those specs' `log` relationship and `lib/widgets/logs_section.dart`),
-  // never standalone.
-  NoteTypeSpec(
-    primaryType: 'log',
-    label: 'Log',
-    showInLists: false,
     fields: [
       NoteFieldSpec(key: 'title', label: 'Title', required: true),
       NoteFieldSpec(key: 'content', label: 'Content', multiline: true),

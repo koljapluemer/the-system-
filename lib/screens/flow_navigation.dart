@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../state/recent_history_notifier.dart';
-import 'floating_notes_screen.dart';
-import 'graph_view_screen.dart';
 import 'memorize_screen.dart';
-import 'netting_screen.dart';
-import 'scratchpad_triage_screen.dart';
 import 'search_screen.dart';
 
 /// Describes one top-level flow, reachable from [HomeScreen]'s link list and
@@ -29,40 +25,16 @@ class FlowSpec {
 
 final flowSpecs = [
   FlowSpec(
-    id: 'scratchpad-triage',
-    label: 'Scratchpad Triage',
-    icon: Icons.inbox_outlined,
-    builder: (_) => const ScratchpadTriageScreen(),
-  ),
-  FlowSpec(
     id: 'memorize',
     label: 'Memorize',
     icon: Icons.school_outlined,
     builder: (_) => const MemorizeScreen(),
   ),
   FlowSpec(
-    id: 'floating-notes',
-    label: 'Floating Notes',
-    icon: Icons.bubble_chart_outlined,
-    builder: (_) => const FloatingNotesScreen(),
-  ),
-  FlowSpec(
-    id: 'netting',
-    label: 'Netting',
-    icon: Icons.help_outline,
-    builder: (_) => const NettingScreen(),
-  ),
-  FlowSpec(
     id: 'search',
     label: 'Search',
     icon: Icons.search,
     builder: (_) => const SearchScreen(),
-  ),
-  FlowSpec(
-    id: 'graph-view',
-    label: 'Graph View',
-    icon: Icons.hub_outlined,
-    builder: (_) => const GraphViewScreen(),
   ),
 ];
 

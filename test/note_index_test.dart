@@ -5,104 +5,71 @@ void main() {
   group('untriagedOfType', () {
     test('includes notes matching primaryType with no triaged field', () {
       final index = NoteIndex(entries: {
-        'a.json': {'primaryType': 'scratchpad', 'title': 'A'},
+        'a.json': {'primaryType': 'story', 'title': 'A'},
       });
-      expect(index.untriagedOfType('scratchpad'), contains('a.json'));
+      expect(index.untriagedOfType('story'), contains('a.json'));
     });
 
     test('excludes notes already triaged "true"', () {
       final index = NoteIndex(entries: {
-        'b.json': {'primaryType': 'scratchpad', 'triaged': 'true'},
+        'b.json': {'primaryType': 'story', 'triaged': 'true'},
       });
-      expect(index.untriagedOfType('scratchpad'), isNot(contains('b.json')));
+      expect(index.untriagedOfType('story'), isNot(contains('b.json')));
     });
 
     test('excludes notes with a different primaryType', () {
       final index = NoteIndex(entries: {
         'c.json': {'primaryType': 'art'},
       });
-      expect(index.untriagedOfType('scratchpad'), isNot(contains('c.json')));
+      expect(index.untriagedOfType('story'), isNot(contains('c.json')));
     });
   });
 
   group('summariesOfType', () {
     test('includes notes matching primaryType regardless of triaged status', () {
       final index = NoteIndex(entries: {
-        's1.json': {'primaryType': 'scratchpad', 'triaged': 'true', 'title': 'S1'},
-        's2.json': {'primaryType': 'scratchpad', 'title': 'S2'},
+        's1.json': {'primaryType': 'story', 'triaged': 'true', 'title': 'S1'},
+        's2.json': {'primaryType': 'story', 'title': 'S2'},
       });
-      final filenames = index.summariesOfType('scratchpad').map((s) => s.filename);
+      final filenames = index.summariesOfType('story').map((s) => s.filename);
       expect(filenames, containsAll(['s1.json', 's2.json']));
     });
 
     test('excludes notes with a different primaryType', () {
       final index = NoteIndex(entries: {
-        'd.json': {'primaryType': 'entity', 'title': 'D'},
+        'd.json': {'primaryType': 'question', 'title': 'D'},
       });
-      expect(index.summariesOfType('scratchpad'), isEmpty);
+      expect(index.summariesOfType('story'), isEmpty);
     });
 
     test('carries filename and title through', () {
       final index = NoteIndex(entries: {
-        's.json': {'primaryType': 'scratchpad', 'title': 'Some Title'},
+        's.json': {'primaryType': 'story', 'title': 'Some Title'},
       });
-      final summary = index.summariesOfType('scratchpad').first;
+      final summary = index.summariesOfType('story').first;
       expect(summary.filename, 's.json');
       expect(summary.title, 'Some Title');
     });
 
     test('defaults title to empty string when missing', () {
       final index = NoteIndex(entries: {
-        'notitle.json': {'primaryType': 'scratchpad'},
+        'notitle.json': {'primaryType': 'story'},
       });
-      expect(index.summariesOfType('scratchpad').first.title, '');
+      expect(index.summariesOfType('story').first.title, '');
     });
 
     test('carries secondaryType through', () {
       final index = NoteIndex(entries: {
-        'h1.json': {'primaryType': 'hypothesis', 'title': 'H1', 'secondaryType': 'active'},
+        'h1.json': {'primaryType': 'milestone', 'title': 'H1', 'secondaryType': 'open'},
       });
-      expect(index.summariesOfType('hypothesis').first.secondaryType, 'active');
+      expect(index.summariesOfType('milestone').first.secondaryType, 'open');
     });
 
     test('defaults secondaryType to null when missing', () {
       final index = NoteIndex(entries: {
-        'h2.json': {'primaryType': 'hypothesis', 'title': 'H2'},
+        'h2.json': {'primaryType': 'milestone', 'title': 'H2'},
       });
-      expect(index.summariesOfType('hypothesis').first.secondaryType, isNull);
-    });
-  });
-
-  group('floatingPool', () {
-    test('includes scratchpad notes only once triaged "true"', () {
-      final index = NoteIndex(entries: {
-        's1.json': {'primaryType': 'scratchpad', 'triaged': 'true', 'title': 'S1'},
-        's2.json': {'primaryType': 'scratchpad', 'title': 'S2'},
-      });
-      final filenames = index.floatingPool().map((n) => n.filename);
-      expect(filenames, contains('s1.json'));
-      expect(filenames, isNot(contains('s2.json')));
-    });
-
-    test('excludes other primaryTypes', () {
-      final index = NoteIndex(entries: {
-        'c.json': {'primaryType': 'art', 'title': 'C'},
-      });
-      expect(index.floatingPool(), isEmpty);
-    });
-
-    test('carries title and content through', () {
-      final index = NoteIndex(entries: {
-        's2.json': {
-          'primaryType': 'scratchpad',
-          'triaged': 'true',
-          'title': 'Title',
-          'content': 'Body text',
-        },
-      });
-      final entry = index.floatingPool().first;
-      expect(entry.title, 'Title');
-      expect(entry.content, 'Body text');
+      expect(index.summariesOfType('milestone').first.secondaryType, isNull);
     });
   });
 }

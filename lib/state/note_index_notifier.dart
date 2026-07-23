@@ -20,8 +20,8 @@ const _extraKeysOutsideFields = <String, List<String>>{
 /// folder by scanning disk (see [NotesService.scanNotes]), then kept in sync
 /// in memory as the app itself writes/deletes/creates notes — this app is
 /// the only writer to the folder, so no external-change staleness handling
-/// is needed. All triage/list/floating-notes flows read from this instead of
-/// each re-scanning disk independently.
+/// is needed. All triage/list flows read from this instead of each
+/// re-scanning disk independently.
 class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
   @override
   Future<NoteIndex> build() async {
@@ -57,9 +57,9 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
 
   /// Attaches `[label, relatedFilename, reverseLabel]` to `filename`'s
   /// `rels`, and always attaches the mirror `[reverseLabel, filename, label]`
-  /// to the related note too — e.g. adding "source" to a quote also adds
-  /// "backlink" (or a caller-supplied [reverseLabel]) back to the source.
-  /// Every relationship is reciprocal now; [reverseLabel] defaults to
+  /// to the related note too — e.g. adding "inspired by" to a note also adds
+  /// "backlink" (or a caller-supplied [reverseLabel]) back to the related
+  /// one. Every relationship is reciprocal now; [reverseLabel] defaults to
   /// `'backlink'` when not given. Idempotent: a pair already present on
   /// either side is not duplicated (needed so `_deleteRelated`'s Undo, which
   /// restores the related note's full pre-delete content and then
@@ -120,9 +120,9 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
   /// Creates a new `primaryType: "log"` note, stamped with the current
   /// moment as `createdAt` (ISO 8601) — a generic title-only
   /// [createFromSpec] create can't set that, so this is used instead (see
-  /// the `hypothesis` branch alongside it in `_AddScreenState._createNote`).
-  /// Always reached via the relationship-attach flow from a
-  /// hypothesis/source/milestone note, never as a standalone create.
+  /// the `log` branch in `_AddScreenState._createNote`). Always reached via
+  /// the relationship-attach flow from a milestone note, never as a
+  /// standalone create.
   Future<String> createLog({required String title}) async {
     final folder = (await ref.read(dataFolderProvider.future))!;
     final content = <String, dynamic>{
@@ -138,12 +138,10 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
   }
 
   /// Creates a new note of [spec]'s primaryType with [title] and an empty
-  /// string (empty list for [NoteFieldSpec.isArray] fields, `false` for
-  /// [NoteFieldSpec.isBool] fields) for every other field in [spec.fields]
-  /// (e.g. `content`), for the "new note" action on a type's Lists screen.
-  /// [secondaryType], when given, is stamped onto the note too (the Add
-  /// screen's secondaryType picker, when [spec.secondaryTypes] is
-  /// non-empty).
+  /// string for every other field in [spec.fields] (e.g. `content`), for the
+  /// "new note" action on a type's Lists screen. [secondaryType], when
+  /// given, is stamped onto the note too (the Add screen's secondaryType
+  /// picker, when [spec.secondaryTypes] is non-empty).
   Future<String> createFromSpec(
     NoteTypeSpec spec, {
     required String title,
@@ -153,7 +151,7 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
     final content = <String, dynamic>{'primaryType': spec.primaryType, 'title': title};
     for (final field in spec.fields) {
       if (field.key == 'title') continue;
-      content[field.key] = field.isArray ? <String>[] : (field.isBool ? false : '');
+      content[field.key] = '';
     }
     if (secondaryType != null) content['secondaryType'] = secondaryType;
     final filename =
@@ -173,16 +171,14 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
   /// keeps matching assets/note_schema.json (`additionalProperties: false`)
   /// for its new shape: keeps fields common to every type (title, aliases,
   /// rels, extraData) plus any field whose key exists in both the old and
-  /// new type (e.g. `content` surviving an art→gestalt switch), drops
+  /// new type (e.g. `content` surviving an art→story switch), drops
   /// everything else unique to the old type, and fills any of [newSpec]'s
-  /// fields still missing with `''` (`[]` for [NoteFieldSpec.isArray] fields,
-  /// `false` for [NoteFieldSpec.isBool] fields). `secondaryType` and
-  /// `triaged` are kept only when the new type
-  /// still allows them (dropped, not remapped, if the old value isn't one of
-  /// [newSpec.secondaryTypes]). A few types carry fields outside
-  /// [NoteTypeSpec.fields] by design (see the primaryType switch below and
-  /// the `log`/`flashcard` entries in note_type_spec.dart) — those are
-  /// preserved/stamped the same way.
+  /// fields still missing with `''`. `secondaryType` and `triaged` are kept
+  /// only when the new type still allows them (dropped, not remapped, if the
+  /// old value isn't one of [newSpec.secondaryTypes]). A few types carry
+  /// fields outside [NoteTypeSpec.fields] by design (see the primaryType
+  /// switch below and the `log`/`flashcard` entries in note_type_spec.dart)
+  /// — those are preserved/stamped the same way.
   Future<void> changePrimaryType({required String filename, required NoteTypeSpec newSpec}) async {
     final index = await future;
     final note = index.entries[filename];
@@ -190,7 +186,7 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
 
     final allowedKeys = {
       'primaryType', 'title', 'aliases', 'rels', 'extraData',
-      if (newSpec.primaryType != 'hypothesis' && newSpec.primaryType != 'flashcard') 'triaged',
+      if (newSpec.primaryType != 'flashcard') 'triaged',
       if (newSpec.secondaryTypes.isNotEmpty) 'secondaryType',
       for (final field in newSpec.fields) field.key,
       ...?_extraKeysOutsideFields[newSpec.primaryType],
@@ -204,7 +200,7 @@ class NoteIndexNotifier extends AsyncNotifier<NoteIndex> {
       updated.remove('secondaryType');
     }
     for (final field in newSpec.fields) {
-      updated[field.key] ??= field.isArray ? <String>[] : (field.isBool ? false : '');
+      updated[field.key] ??= '';
     }
     if (newSpec.primaryType == 'log') {
       updated['createdAt'] ??= DateTime.now().toIso8601String();

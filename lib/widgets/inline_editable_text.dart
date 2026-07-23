@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 /// A label + value display with a pencil button that swaps it into a
 /// TextField with confirm/cancel, mirroring the per-item edit affordance in
 /// [ArrayListSection] so both feel like one consistent pattern. The value is
-/// rendered as markdown whenever it isn't being edited, unless [isUrl] is set
-/// — then it renders as a tappable hyperlink (opened via `url_launcher`)
-/// instead.
+/// rendered as markdown whenever it isn't being edited.
 class InlineEditableText extends StatefulWidget {
   final String label;
   final String value;
   final bool multiline;
-  final bool isUrl;
   final ValueChanged<String> onSave;
 
   const InlineEditableText({
@@ -21,7 +17,6 @@ class InlineEditableText extends StatefulWidget {
     required this.value,
     required this.onSave,
     this.multiline = false,
-    this.isUrl = false,
   });
 
   @override
@@ -111,22 +106,7 @@ class _InlineEditableTextState extends State<InlineEditableText> {
                     children: [
                       Text(widget.label, style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 4),
-                      if (widget.isUrl && widget.value.isNotEmpty && Uri.tryParse(widget.value) != null)
-                        InkWell(
-                          onTap: () => launchUrl(
-                            Uri.parse(widget.value),
-                            mode: LaunchMode.externalApplication,
-                          ),
-                          child: Text(
-                            widget.value,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        )
-                      else
-                        MarkdownBody(data: widget.value.isEmpty ? '—' : widget.value),
+                      MarkdownBody(data: widget.value.isEmpty ? '—' : widget.value),
                     ],
                   ),
                 ),

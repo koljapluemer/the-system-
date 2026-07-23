@@ -6,9 +6,9 @@ individual files goes through `NotesService` (`lib/services/notes_service.dart`)
 
 ## Why there's an index
 
-Early on, each flow (Scratchpad Triage, Art Triage, the floating-notes
-canvas, the Lists screens, the invalid-JSON checker) independently scanned
-the *entire* data folder from disk whenever it opened. At real vault sizes
+Early on, each flow (Art Triage, the Lists screens, the invalid-JSON
+checker) independently scanned the *entire* data folder from disk whenever
+it opened. At real vault sizes
 (the folder can hold up to ~100k small JSON files) that meant every
 navigation paid a full rescan for data that mostly hadn't changed since the
 last visit.
@@ -37,9 +37,9 @@ client editing files live).
 2. **`NoteIndex`** (`lib/models/note_index.dart`) — a plain, disk-free
    snapshot: `entries` (filename → decoded content) plus `unparsable`
    (filenames that failed to decode), with small query helpers
-   (`untriagedOfType`, `summariesOfType`, `floatingPool`) that every consumer
-   filters through instead of re-implementing folder scans. Kept as a plain
-   model (not Riverpod state) so `JsonSchemaService` can depend on it without
+   (`untriagedOfType`, `summariesOfType`) that every consumer filters through
+   instead of re-implementing folder scans. Kept as a plain model (not
+   Riverpod state) so `JsonSchemaService` can depend on it without
    `services/` reaching into `state/`.
 3. **`NoteIndexNotifier`** (`lib/state/note_index_notifier.dart`) — the live
    Riverpod cache, `AsyncNotifier<NoteIndex>`. `build()` runs `scanNotes()`
@@ -49,11 +49,11 @@ client editing files live).
    `noteIndexProvider` sees the change immediately, with no manual reload
    anywhere.
 
-Consumers: `TriageNotifier` (shared base for Art/Scratchpad triage),
-`FloatingNotesNotifier`, `NoteTypeListScreen`, `NoteEditScreen`,
-`QuickAddScreen`, and `home_screen.dart`'s invalid-JSON check all read from
-`noteIndexProvider` instead of calling `NotesService`'s scan methods
-directly (those methods no longer exist — `scanNotes` is the only one left).
+Consumers: `TriageNotifier` (shared base for Art triage), `NoteTypeListScreen`,
+`NoteEditScreen`, `QuickAddScreen`, and `home_screen.dart`'s invalid-JSON
+check all read from `noteIndexProvider` instead of calling `NotesService`'s
+scan methods directly (those methods no longer exist — `scanNotes` is the
+only one left).
 
 ## The one real gotcha
 

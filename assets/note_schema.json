@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "The System note file",
-  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: scratchpad, art, hypothesis, milestone, gestalt, context, ifThen, description, quote, source, entity, story, log, flashcard, project, do, activity, or question.",
+  "description": "Schema for the flat JSON note files stored in the data folder. A conforming file matches exactly one of the note shapes this app currently reads and writes: art, milestone, story, log, flashcard, project, do, activity, or question.",
   "definitions": {
     "rels": {
       "description": "Relationships to other note files: [label, filename] or [label, filename, mirrorLabel] — the optional third element records the reciprocal label written on the related note.",
@@ -30,35 +30,9 @@
     "extraData": {
       "description": "Arbitrary nested props imported from Obsidian frontmatter (see the \"Add props from Obsidian\" action on a note's view screen), preserved as-is. Not otherwise read or written by the app.",
       "type": "object"
-    },
-    "questions": {
-      "description": "Netting-flow question/answer pairs, keyed by the (plaintext) question text. Value is the free-text answer, or literally false if the question was marked not relevant, so Netting skips it for this note from then on.",
-      "type": "object",
-      "additionalProperties": {
-        "oneOf": [
-          { "type": "string" },
-          { "const": false }
-        ]
-      }
     }
   },
   "oneOf": [
-    {
-      "description": "Scratchpad Triage notes.",
-      "showInLists": true,
-      "type": "object",
-      "properties": {
-        "primaryType": { "const": "scratchpad" },
-        "title": { "type": "string" },
-        "aliases": { "$ref": "#/definitions/aliases" },
-        "content": { "type": "string" },
-        "rels": { "$ref": "#/definitions/rels" },
-        "extraData": { "$ref": "#/definitions/extraData" },
-        "triaged": { "$ref": "#/definitions/triaged" }
-      },
-      "required": ["primaryType", "title", "content"],
-      "additionalProperties": false
-    },
     {
       "description": "Art Triage notes.",
       "showInLists": true,
@@ -74,28 +48,6 @@
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title", "content"],
-      "additionalProperties": false
-    },
-    {
-      "description": "Hypotheses tracked through a research workflow: context, notes, and findings logged as free-text entries, resolved as supported or disproven.",
-      "showInLists": true,
-      "type": "object",
-      "properties": {
-        "primaryType": { "const": "hypothesis" },
-        "title": { "type": "string" },
-        "aliases": { "$ref": "#/definitions/aliases" },
-        "secondaryType": {
-          "type": "string",
-          "enum": ["active", "supported", "disproven"],
-          "defaultVisible": ["active"]
-        },
-        "context": { "type": "array", "items": { "type": "string" } },
-        "notes": { "type": "array", "items": { "type": "string" } },
-        "findings": { "type": "array", "items": { "type": "string" } },
-        "rels": { "$ref": "#/definitions/rels" },
-        "extraData": { "$ref": "#/definitions/extraData" }
-      },
-      "required": ["primaryType", "title"],
       "additionalProperties": false
     },
     {
@@ -120,7 +72,7 @@
       "additionalProperties": false
     },
     {
-      "description": "Log notes: a timestamped free-text entry attached to a hypothesis, source, or milestone.",
+      "description": "Log notes: a timestamped free-text entry attached to a milestone.",
       "showInLists": false,
       "type": "object",
       "properties": {
@@ -137,127 +89,6 @@
         "triaged": { "$ref": "#/definitions/triaged" }
       },
       "required": ["primaryType", "title", "createdAt"],
-      "additionalProperties": false
-    },
-    {
-      "description": "Gestalt notes: a pattern, approximated by descriptions.",
-      "showInLists": true,
-      "type": "object",
-      "properties": {
-        "primaryType": { "const": "gestalt" },
-        "title": { "type": "string" },
-        "aliases": { "$ref": "#/definitions/aliases" },
-        "content": { "type": "string" },
-        "rels": { "$ref": "#/definitions/rels" },
-        "extraData": { "$ref": "#/definitions/extraData" },
-        "triaged": { "$ref": "#/definitions/triaged" }
-      },
-      "required": ["primaryType", "title"],
-      "additionalProperties": false
-    },
-    {
-      "description": "Context notes: gives context to if-then note.",
-      "showInLists": true,
-      "type": "object",
-      "properties": {
-        "primaryType": { "const": "context" },
-        "title": { "type": "string" },
-        "aliases": { "$ref": "#/definitions/aliases" },
-        "content": { "type": "string" },
-        "rels": { "$ref": "#/definitions/rels" },
-        "extraData": { "$ref": "#/definitions/extraData" },
-        "triaged": { "$ref": "#/definitions/triaged" }
-      },
-      "required": ["primaryType", "title"],
-      "additionalProperties": false
-    },
-    {
-      "description": "If/then notes: a type of take.",
-      "showInLists": true,
-      "type": "object",
-      "properties": {
-        "primaryType": { "const": "ifThen" },
-        "title": { "type": "string" },
-        "aliases": { "$ref": "#/definitions/aliases" },
-        "content": { "type": "string" },
-        "rels": { "$ref": "#/definitions/rels" },
-        "extraData": { "$ref": "#/definitions/extraData" },
-        "triaged": { "$ref": "#/definitions/triaged" },
-        "questions": { "$ref": "#/definitions/questions" }
-      },
-      "required": ["primaryType", "title"],
-      "additionalProperties": false
-    },
-    {
-      "description": "Description notes: describes a shape.",
-      "showInLists": true,
-      "type": "object",
-      "properties": {
-        "primaryType": { "const": "description" },
-        "title": { "type": "string" },
-        "aliases": { "$ref": "#/definitions/aliases" },
-        "content": { "type": "string" },
-        "rels": { "$ref": "#/definitions/rels" },
-        "extraData": { "$ref": "#/definitions/extraData" },
-        "triaged": { "$ref": "#/definitions/triaged" },
-        "questions": { "$ref": "#/definitions/questions" }
-      },
-      "required": ["primaryType", "title"],
-      "additionalProperties": false
-    },
-    {
-      "description": "Quote notes: a verbatim quote worth keeping.",
-      "showInLists": true,
-      "type": "object",
-      "properties": {
-        "primaryType": { "const": "quote" },
-        "title": { "type": "string" },
-        "aliases": { "$ref": "#/definitions/aliases" },
-        "content": { "type": "string" },
-        "rels": { "$ref": "#/definitions/rels" },
-        "extraData": { "$ref": "#/definitions/extraData" },
-        "triaged": { "$ref": "#/definitions/triaged" }
-      },
-      "required": ["primaryType", "title"],
-      "additionalProperties": false
-    },
-    {
-      "description": "Source notes: a reference to where a note or idea came from.",
-      "showInLists": true,
-      "type": "object",
-      "properties": {
-        "primaryType": { "const": "source" },
-        "title": { "type": "string" },
-        "aliases": { "$ref": "#/definitions/aliases" },
-        "content": { "type": "string" },
-        "secondaryType": {
-          "type": "string",
-          "enum": ["book", "article", "blog", "video", "software", "misc"]
-        },
-        "worthCheckingOutAgain": { "type": "boolean" },
-        "url": { "type": "string" },
-        "rels": { "$ref": "#/definitions/rels" },
-        "extraData": { "$ref": "#/definitions/extraData" },
-        "triaged": { "$ref": "#/definitions/triaged" }
-      },
-      "required": ["primaryType", "title"],
-      "additionalProperties": false
-    },
-    {
-      "description": "Entity notes: a person, place, organization, or other named thing.",
-      "showInLists": true,
-      "type": "object",
-      "properties": {
-        "primaryType": { "const": "entity" },
-        "title": { "type": "string" },
-        "aliases": { "$ref": "#/definitions/aliases" },
-        "content": { "type": "string" },
-        "url": { "type": "string" },
-        "rels": { "$ref": "#/definitions/rels" },
-        "extraData": { "$ref": "#/definitions/extraData" },
-        "triaged": { "$ref": "#/definitions/triaged" }
-      },
-      "required": ["primaryType", "title"],
       "additionalProperties": false
     },
     {

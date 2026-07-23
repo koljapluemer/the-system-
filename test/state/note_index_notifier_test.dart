@@ -42,11 +42,11 @@ void main() {
   }
 
   test('build scans the folder into entries and unparsable', () async {
-    await writeFixture('a.json', {'primaryType': 'scratchpad', 'title': 'A'});
+    await writeFixture('a.json', {'primaryType': 'story', 'title': 'A'});
     await File('${tempDir.path}/broken.json').writeAsString('{not json');
 
     final index = await container.read(noteIndexProvider.future);
-    expect(index.entries['a.json'], {'primaryType': 'scratchpad', 'title': 'A'});
+    expect(index.entries['a.json'], {'primaryType': 'story', 'title': 'A'});
     expect(index.unparsable, contains('broken.json'));
   });
 
@@ -54,17 +54,17 @@ void main() {
     await container.read(noteIndexProvider.future);
     await container
         .read(noteIndexProvider.notifier)
-        .write('new.json', {'primaryType': 'scratchpad', 'title': 'New'});
+        .write('new.json', {'primaryType': 'story', 'title': 'New'});
 
     final index = container.read(noteIndexProvider).value!;
-    expect(index.entries['new.json'], {'primaryType': 'scratchpad', 'title': 'New'});
+    expect(index.entries['new.json'], {'primaryType': 'story', 'title': 'New'});
 
     final onDisk = jsonDecode(await File('${tempDir.path}/new.json').readAsString());
     expect(onDisk['title'], 'New');
   });
 
   test('delete removes both the in-memory entry and the file on disk', () async {
-    await writeFixture('gone.json', {'primaryType': 'scratchpad', 'title': 'Gone'});
+    await writeFixture('gone.json', {'primaryType': 'story', 'title': 'Gone'});
     await container.read(noteIndexProvider.future);
 
     await container.read(noteIndexProvider.notifier).delete('gone.json');
@@ -74,32 +74,29 @@ void main() {
     expect(await File('${tempDir.path}/gone.json').exists(), isFalse);
   });
 
-  test('createFromSpec creates an active hypothesis with empty sections', () async {
+  test('createFromSpec creates an open milestone', () async {
     await container.read(noteIndexProvider.future);
-    final hypothesisSpec = noteTypeSpecs.firstWhere((s) => s.primaryType == 'hypothesis');
+    final milestoneSpec = noteTypeSpecs.firstWhere((s) => s.primaryType == 'milestone');
 
     final filename = await container.read(noteIndexProvider.notifier).createFromSpec(
-          hypothesisSpec,
-          title: 'My Hypothesis',
-          secondaryType: hypothesisSpec.defaultSecondaryType,
+          milestoneSpec,
+          title: 'My Milestone',
+          secondaryType: milestoneSpec.defaultSecondaryType,
         );
 
     final index = container.read(noteIndexProvider).value!;
-    expect(index.entries[filename]?['primaryType'], 'hypothesis');
-    expect(index.entries[filename]?['title'], 'My Hypothesis');
-    expect(index.entries[filename]?['secondaryType'], 'active');
-    expect(index.entries[filename]?['context'], <String>[]);
-    expect(index.entries[filename]?['notes'], <String>[]);
-    expect(index.entries[filename]?['findings'], <String>[]);
+    expect(index.entries[filename]?['primaryType'], 'milestone');
+    expect(index.entries[filename]?['title'], 'My Milestone');
+    expect(index.entries[filename]?['secondaryType'], 'open');
 
     final onDisk = jsonDecode(await File('${tempDir.path}/$filename').readAsString());
-    expect(onDisk['secondaryType'], 'active');
+    expect(onDisk['secondaryType'], 'open');
   });
 
   group('attachRelationship', () {
     test('writes both sides with an explicit reverse label', () async {
-      await writeFixture('a.json', {'primaryType': 'scratchpad', 'title': 'A'});
-      await writeFixture('b.json', {'primaryType': 'scratchpad', 'title': 'B'});
+      await writeFixture('a.json', {'primaryType': 'story', 'title': 'A'});
+      await writeFixture('b.json', {'primaryType': 'story', 'title': 'B'});
       await container.read(noteIndexProvider.future);
 
       await container.read(noteIndexProvider.notifier).attachRelationship(
@@ -119,8 +116,8 @@ void main() {
     });
 
     test('defaults the reverse label to "backlink" when omitted', () async {
-      await writeFixture('a.json', {'primaryType': 'scratchpad', 'title': 'A'});
-      await writeFixture('b.json', {'primaryType': 'scratchpad', 'title': 'B'});
+      await writeFixture('a.json', {'primaryType': 'story', 'title': 'A'});
+      await writeFixture('b.json', {'primaryType': 'story', 'title': 'B'});
       await container.read(noteIndexProvider.future);
 
       await container.read(noteIndexProvider.notifier).attachRelationship(
@@ -139,14 +136,14 @@ void main() {
   group('detachRelationship', () {
     test('removes both sides using the entry\'s recorded mirror label', () async {
       await writeFixture('a.json', {
-        'primaryType': 'scratchpad',
+        'primaryType': 'story',
         'title': 'A',
         'rels': [
           ['inspired by', 'b.json', 'inspires'],
         ],
       });
       await writeFixture('b.json', {
-        'primaryType': 'scratchpad',
+        'primaryType': 'story',
         'title': 'B',
         'rels': [
           ['inspires', 'a.json', 'inspired by'],
@@ -166,30 +163,30 @@ void main() {
 
     test('only detaches the local side for a legacy 2-element entry', () async {
       await writeFixture('a.json', {
-        'primaryType': 'scratchpad',
+        'primaryType': 'story',
         'title': 'A',
         'rels': [
-          ['source', 'b.json'],
+          ['inspired by', 'b.json'],
         ],
       });
       await writeFixture('b.json', {
-        'primaryType': 'source',
+        'primaryType': 'story',
         'title': 'B',
         'rels': [
-          ['sourceOf', 'a.json'],
+          ['inspires', 'a.json'],
         ],
       });
       await container.read(noteIndexProvider.future);
 
       await container.read(noteIndexProvider.notifier).detachRelationship(
             filename: 'a.json',
-            rel: ['source', 'b.json'],
+            rel: ['inspired by', 'b.json'],
           );
 
       final index = container.read(noteIndexProvider).value!;
       expect(index.entries['a.json']?['rels'], <List<String>>[]);
       expect(index.entries['b.json']?['rels'], [
-        ['sourceOf', 'a.json'],
+        ['inspires', 'a.json'],
       ]);
     });
   });
